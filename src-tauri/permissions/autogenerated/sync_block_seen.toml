@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sync-block-seen"
+description = "Enables the sync_block_seen command without any pre-configured scope."
+commands.allow = ["sync_block_seen"]
+
+[[permission]]
+identifier = "deny-sync-block-seen"
+description = "Denies the sync_block_seen command without any pre-configured scope."
+commands.deny = ["sync_block_seen"]

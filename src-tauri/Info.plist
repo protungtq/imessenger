@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSCameraUsageDescription</key>
+  <string>Messenger uses the camera for video calls.</string>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Messenger uses the microphone for calls and voice messages.</string>
+  <!-- Notifications as messages from their sender (Communication Notifications). -->
+  <key>NSUserActivityTypes</key>
+  <array>
+    <string>INSendMessageIntent</string>
+  </array>
+</dict>
+</plist>

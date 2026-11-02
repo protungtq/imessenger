@@ -1,0 +1,7 @@
+node_modules/
+src-tauri/target/
+src-tauri/gen/schemas/
+.DS_Store
+
+# Provisioning profiles for signed macOS builds (tauri.signed.conf.json)
+src-tauri/signing/

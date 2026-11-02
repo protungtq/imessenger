@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "macOS": {
+      "signingIdentity": "Developer ID Application: Vi Nguyen Trieu (8A73ZAHQBD)",
+      "entitlements": "Entitlements.signed.plist",
+      "files": {
+        "embedded.provisionprofile": "signing/fMess_Developer_ID.provisionprofile"
+      }
+    }
+  }
+}

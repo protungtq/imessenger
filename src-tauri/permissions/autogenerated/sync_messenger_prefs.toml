@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sync-messenger-prefs"
+description = "Enables the sync_messenger_prefs command without any pre-configured scope."
+commands.allow = ["sync_messenger_prefs"]
+
+[[permission]]
+identifier = "deny-sync-messenger-prefs"
+description = "Denies the sync_messenger_prefs command without any pre-configured scope."
+commands.deny = ["sync_messenger_prefs"]

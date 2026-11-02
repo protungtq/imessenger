@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "iMessenger",
+  "version": "1.0.0",
+  "identifier": "asia.so1.imessenger",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "windows": [],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "SocialNetworking",
+    "shortDescription": "iMessenger — unofficial desktop app for Messenger on the web",
+    "longDescription": "iMessenger wraps Messenger on the web in a small native window with notifications, an unread badge and a tray icon. A personal rebrand of fMess by Toan Ho (MIT). Not affiliated with Meta.",
+    "copyright": "© 2026 Lương Văn Tùng. Based on fMess © fMess contributors (MIT). Messenger is a trademark of Meta Platforms, Inc.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "entitlements": "Entitlements.plist",
+      "minimumSystemVersion": "12.0"
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGMTBBQzY2MDZBQjIxMEQKUldRTklhc0dacXdRWC9jV3BuTHBCNWpkY1dleU1OaWFST0hBQlcxdnl1NUdobHRsMzBteTdCZHMK",
+      "endpoints": [
+        "https://github.com/protungtq/imessenger/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

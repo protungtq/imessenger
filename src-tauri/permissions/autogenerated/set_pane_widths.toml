@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-pane-widths"
+description = "Enables the set_pane_widths command without any pre-configured scope."
+commands.allow = ["set_pane_widths"]
+
+[[permission]]
+identifier = "deny-set-pane-widths"
+description = "Denies the set_pane_widths command without any pre-configured scope."
+commands.deny = ["set_pane_widths"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-facebook-bar"
+description = "Enables the set_facebook_bar command without any pre-configured scope."
+commands.allow = ["set_facebook_bar"]
+
+[[permission]]
+identifier = "deny-set-facebook-bar"
+description = "Denies the set_facebook_bar command without any pre-configured scope."
+commands.deny = ["set_facebook_bar"]

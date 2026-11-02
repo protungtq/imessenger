@@ -1,0 +1,97 @@
+[package]
+name = "imessenger"
+version = "1.0.0"
+description = "iMessenger — unofficial desktop client for Messenger on the web (based on fMess)"
+authors = ["protungtq", "toanbku"]
+license = "MIT"
+edition = "2021"
+rust-version = "1.80"
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+[dependencies]
+tauri = { version = "2.12.5", features = ["tray-icon", "image-png"] }
+tauri-plugin-notification = "2.8.0"
+tauri-plugin-opener = "2.7.2"
+tauri-plugin-window-state = "2.5.0"
+tauri-plugin-single-instance = "2.5.5"
+tauri-plugin-autostart = "2.7.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.21"
+# Already part of Tauri: reads a theme the way the browser will.
+cssparser = "0.37"
+tauri-plugin-updater = "2.12.0"
+tauri-plugin-dialog = "2.7.3"
+tokio = { version = "1.53.3", features = ["time"] }
+# The system's preferred language, for fMess's own words (see i18n.rs).
+sys-locale = "0.3"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+block2 = "0.6"
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3.2", default-features = false, features = [
+    "NSApplication",
+    "NSAttributedString",
+    "NSColor",
+    "NSFont",
+    "NSImage",
+    "NSParagraphStyle",
+    "NSResponder",
+    "NSRunningApplication",
+    "NSText",
+    "NSWindow",
+] }
+objc2-foundation = { version = "0.3.2", default-features = false, features = [
+    "std",
+    "NSArray",
+    "NSAttributedString",
+    "NSData",
+    "NSDictionary",
+    "NSError",
+    "NSObject",
+    "NSRange",
+    "NSSet",
+    "NSString",
+    "NSURL",
+    "NSUserDefaults",
+] }
+objc2-intents = { version = "0.3.2", default-features = false, features = [
+    "std",
+    "block2",
+    "INImage",
+    "INIntent",
+    "INIntentResponse",
+    "INInteraction",
+    "INOutgoingMessageType",
+    "INPerson",
+    "INPersonHandle",
+    "INSendMessageAttachment",
+    "INSendMessageIntent",
+    "INSpeakableString",
+] }
+objc2-user-notifications = { version = "0.3.2", default-features = false, features = [
+    "std",
+    "block2",
+    "bitflags",
+    "UNNotification",
+    "UNNotificationAction",
+    "UNNotificationAttachment",
+    "UNNotificationCategory",
+    "UNNotificationContent",
+    "UNNotificationRequest",
+    "UNNotificationResponse",
+    "UNNotificationTrigger",
+    "UNUserNotificationCenter",
+] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_Registry", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
