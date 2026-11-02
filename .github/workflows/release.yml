@@ -1,0 +1,213 @@
+name: Release
+
+# Push a tag like v0.2.0 to build every platform into a draft GitHub release.
+# Publishing that draft makes it the release the app's updater offers
+# (releases/latest/download/latest.json).
+#
+# Secrets:
+#   TAURI_SIGNING_PRIVATE_KEY, TAURI_SIGNING_PRIVATE_KEY_PASSWORD
+#       Sign the update archives; the app checks them against plugins.updater.pubkey.
+#   APPLE_CERTIFICATE (base64 .p12), APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY,
+#   APPLE_PROVISIONING_PROFILE (base64)
+#       Optional. Sign the Mac app with Developer ID and the profile that allows
+#       Communication Notifications; without them the Mac build is unsigned.
+#   APPLE_ID, APPLE_PASSWORD (app-specific), APPLE_TEAM_ID
+#       Optional. Notarize the signed Mac app.
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  # One draft for every build to upload to. Each build used to find or create
+  # it by tag, and builds that started together each made their own (v0.1.12
+  # came out as two drafts, each with half the files and its own latest.json).
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.release.outputs.id }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+        run: |
+          # A tag push builds that tag; anything else (a push to main, a
+          # manual run) builds the version in tauri.conf.json.
+          if [ "$EVENT" = "push" ] && [ "$REF_TYPE" = "tag" ]; then
+            TAG="$REF_NAME"
+          else
+            TAG="v$(jq -r .version src-tauri/tauri.conf.json)"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          # A re-run uses the draft that is already there.
+          draft_id() { gh api "repos/$REPO/releases" --jq ".[] | select(.tag_name == \"$TAG\" and .draft) | .id" | head -1; }
+          id=$(draft_id)
+          # The new draft's id comes back from creating it: listing the
+          # releases right after can miss it (v0.1.13's check had no id).
+          if [ -z "$id" ]; then
+            id=$(gh api "repos/$REPO/releases" -f tag_name="$TAG" -f target_commitish="$SHA" -f name="iMessenger $TAG" -F body=@RELEASE_NOTES.md -F draft=true --jq .id)
+          fi
+          [ -n "$id" ] || { echo "No draft release for $TAG"; exit 1; }
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: create-release
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-latest
+            target: aarch64-apple-darwin
+          - platform: macos-latest
+            target: x86_64-apple-darwin
+          - platform: ubuntu-22.04
+            target: ''
+          - platform: windows-latest
+            target: ''
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+      # The icon files live in the repo as base64 (branding/b64/); rebuild
+      # them before anything tries to bundle the app.
+      - name: Restore icon files
+        shell: bash
+        run: python3 branding/restore-binaries.py || python branding/restore-binaries.py
+      - name: Install Linux dependencies
+        if: startsWith(matrix.platform, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+          key: ${{ matrix.target }}
+      - run: npm ci
+
+      # The Apple variables are set only when their secrets are: Tauri tries to
+      # sign (or notarize) as soon as a variable exists, even when it is empty.
+      - name: Choose build options
+        id: options
+        shell: bash
+        env:
+          PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+          CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          NOTARY_ID: ${{ secrets.APPLE_ID }}
+          NOTARY_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          NOTARY_TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          args="--config src-tauri/tauri.release.conf.json"
+          if [ -n "${{ matrix.target }}" ]; then args="$args --target ${{ matrix.target }}"; fi
+          if [ "$RUNNER_OS" = "macOS" ] && [ -n "$PROFILE" ] && [ -n "$CERTIFICATE" ]; then
+            mkdir -p src-tauri/signing
+            echo "$PROFILE" | base64 --decode > src-tauri/signing/fMess_Developer_ID.provisionprofile
+            args="$args --config src-tauri/tauri.signed.conf.json"
+            {
+              echo "APPLE_CERTIFICATE=$CERTIFICATE"
+              echo "APPLE_CERTIFICATE_PASSWORD=$CERTIFICATE_PASSWORD"
+              echo "APPLE_SIGNING_IDENTITY=$SIGNING_IDENTITY"
+            } >> "$GITHUB_ENV"
+            if [ -n "$NOTARY_ID" ] && [ -n "$NOTARY_PASSWORD" ] && [ -n "$NOTARY_TEAM" ]; then
+              {
+                echo "APPLE_ID=$NOTARY_ID"
+                echo "APPLE_PASSWORD=$NOTARY_PASSWORD"
+                echo "APPLE_TEAM_ID=$NOTARY_TEAM"
+              } >> "$GITHUB_ENV"
+            fi
+            echo "Signing the Mac app"
+          fi
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+
+      - uses: tauri-apps/tauri-action@v0
+        id: tauri
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          releaseId: ${{ needs.create-release.outputs.id }}
+          # Still set, so latest.json points at this version's files.
+          tagName: ${{ needs.create-release.outputs.tag }}
+          releaseName: iMessenger ${{ needs.create-release.outputs.tag }}
+          releaseBody: See RELEASE_NOTES.md in this repository.
+          releaseDraft: true
+          includeUpdaterJson: false
+          args: ${{ steps.options.outputs.args }}
+
+      # The same installers under names without the version, so the website can
+      # link to releases/latest/download/<name> and always get the newest one.
+      - name: Attach installers under stable names
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PATHS: ${{ steps.tauri.outputs.artifactPaths }}
+        run: |
+          mkdir -p stable
+          mac="iMessenger-mac-intel.dmg"
+          if [ "${{ matrix.target }}" = "aarch64-apple-darwin" ]; then mac="iMessenger-mac-apple-silicon.dmg"; fi
+          echo "$PATHS" | jq -r '.[]' | while read -r path; do
+            if command -v cygpath >/dev/null; then path=$(cygpath -u "$path"); fi
+            case "$path" in
+              *.dmg) cp "$path" "stable/$mac" ;;
+              *-setup.exe) cp "$path" stable/iMessenger-windows-setup.exe ;;
+              *.msi) cp "$path" stable/iMessenger-windows.msi ;;
+              *.AppImage) cp "$path" stable/iMessenger-linux.AppImage ;;
+              *.deb) cp "$path" stable/iMessenger-linux.deb ;;
+              *.rpm) cp "$path" stable/iMessenger-linux.rpm ;;
+            esac
+          done
+          ls -la stable
+          gh release upload "${{ needs.create-release.outputs.tag }}" stable/* --clobber --repo "${{ github.repository }}"
+
+      # Windows also as one .exe that runs without installing, for computers
+      # that don't allow installing software. Built again with FMESS_PORTABLE
+      # set (only fMess's own crate compiles again), so its update prompt
+      # downloads the new .exe instead of running the installer.
+      - name: Attach the portable Windows app
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FMESS_PORTABLE: '1'
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          npx tauri build --no-bundle ${{ steps.options.outputs.args }}
+          mkdir -p portable
+          cp src-tauri/target/release/imessenger.exe portable/iMessenger-windows-portable.exe
+          ls -la portable
+          gh release upload "${{ needs.create-release.outputs.tag }}" portable/iMessenger-windows-portable.exe --clobber --repo "${{ github.repository }}"
+
+  # Publish the draft once every platform is built and attached, so the
+  # release is ready to share without another click.
+  publish:
+    needs: [create-release, build]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ID: ${{ needs.create-release.outputs.id }}
+        run: gh api -X PATCH "repos/$REPO/releases/$ID" -F draft=false
