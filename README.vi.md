@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app-icon.png" width="128" alt="iMessenger">
+  <img src="https://opengraph.githubassets.com/b94b7dd155836337e13f1ffb826e710cdd35919dfdfb89ec9fddcb25bfedc23f/protungtq/imessenger/releases/tag/" width="128" alt="iMessenger">
 </p>
 
 <h1 align="center">iMessenger</h1>
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://fmess.app/?lang=vi">Website</a> ·
+  <a href="https://game8.info">Website</a> ·
   <a href="https://github.com/protungtq/imessenger/releases/latest">Tải về</a> ·
   <a href="README.md">English</a>
 </p>
