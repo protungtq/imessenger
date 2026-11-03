@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="[app-icon.png]([https://github.com/protungtq/imessenger/releases/tag/v1.0.0](https://opengraph.githubassets.com/b94b7dd155836337e13f1ffb826e710cdd35919dfdfb89ec9fddcb25bfedc23f/protungtq/imessenger/releases/tag/))" width="128" alt="iMessenger">
+  <img src="https://opengraph.githubassets.com/b94b7dd155836337e13f1ffb826e710cdd35919dfdfb89ec9fddcb25bfedc23f/protungtq/imessenger/releases/tag/" width="128" alt="iMessenger">
 </p>
 
 <h1 align="center">iMessenger</h1>
