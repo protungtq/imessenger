@@ -68,9 +68,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: macos-latest
+          - platform: macos-15-intel
             target: aarch64-apple-darwin
-          - platform: macos-latest
+          - platform: macos-15-intel
             target: x86_64-apple-darwin
           - platform: ubuntu-22.04
             target: ''
@@ -120,7 +120,7 @@ jobs:
           if [ -n "${{ matrix.target }}" ]; then args="$args --target ${{ matrix.target }}"; fi
           if [ "$RUNNER_OS" = "macOS" ] && [ -n "$PROFILE" ] && [ -n "$CERTIFICATE" ]; then
             mkdir -p src-tauri/signing
-            echo "$PROFILE" | base64 --decode > src-tauri/signing/fMess_Developer_ID.provisionprofile
+            echo "$PROFILE" | base64 --decode > src-tauri/signing/iMessenger_Developer_ID.provisionprofile
             args="$args --config src-tauri/tauri.signed.conf.json"
             {
               echo "APPLE_CERTIFICATE=$CERTIFICATE"
