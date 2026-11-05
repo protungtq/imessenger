@@ -7,12 +7,12 @@
   // way back.
   //
   // On macOS the title bar overlays the page (set by iMessenger before this
-  // script), so the page keeps a strip of __fmessTitleBarInset pixels free
+  // script), so the page keeps a strip of __imessengerTitleBarInset pixels free
   // for the window buttons and dragging, and the bar moves below it.
   //
   // The chats lose the inset, rounded cards Facebook draws, so the panes sit
   // edge to edge with a divider, as in the old app.
-  const LOGGED_OUT = 'data-fmess-logged-out';
+  const LOGGED_OUT = 'data-imessenger-logged-out';
   const syncLoggedOut = () => {
     let out = false;
     try {
@@ -22,14 +22,14 @@
   };
   setInterval(syncLoggedOut, 1000);
   // Popups (call windows) keep a normal title bar.
-  const titleBarInset = window.opener ? 0 : window.__fmessTitleBarInset || 0;
+  const titleBarInset = window.opener ? 0 : window.__imessengerTitleBarInset || 0;
   const inset = `${titleBarInset}px`;
   const BAR_HIDDEN = `html[${CHATS}]`;
   const BAR_SHOWN = `html:not([${CHATS}])`;
   const layoutStyle = document.createElement('style');
   layoutStyle.textContent = `
     /* For themes that draw in the strip: 0 where the system draws the title bar. */
-    :root { --fmess-title-bar: ${inset}; }
+    :root { --imessenger-title-bar: ${inset}; }
     ${BAR_HIDDEN} div[role="banner"] { display: none !important; }
     ${BAR_HIDDEN}, ${BAR_HIDDEN} * { --header-height: ${inset} !important; }
     :is(${BAR_SHOWN}) div[role="banner"] { transform: translateY(${inset}); }
@@ -48,8 +48,31 @@
     html[${CHATS}] body { background: var(--surface-background) !important; }
     /* The same divider before the chat's details (the pane beside the
        messages, with the Search button). */
-    html[${CHATS}] [role="main"] [data-fmess-ui="details"] {
+    html[${CHATS}] [role="main"] [data-imessenger-ui="details"] {
       box-shadow: -1px 0 0 var(--divider, var(--card-border-color));
+    }
+    /* In a chat with a gradient theme, Facebook paints the box around the
+       messages with that gradient (in its inline style), under messages
+       that cover it. On macOS a fast scroll outran WebKit's painting, and
+       the parts not yet painted showed the gradient: the chat flashed purple
+       and blue (#27).
+       Your bubbles show that gradient one of two ways: in some chats each
+       paints it itself (a fixed background), in others each is a see-through
+       window onto the box (0.1.31 dropped the box's gradient and left those
+       bubbles bare). So your bubbles (Messenger's class for their colour,
+       x11jlvup) paint it themselves, fixed to the window as the box's is,
+       and the box goes without only where your bubbles paint it (those, or
+       Messenger's own fixed ones, x1nr1p0w): should Facebook rename them,
+       the :has() keeps the box's gradient, and the flash comes back rather
+       than bare bubbles. A wallpaper (a picture) stays. Themes set the gradient to
+       initial on the box, so their bubbles keep their colour, and paint the
+       box themselves (:where adds no weight). */
+    html[${CHATS}] [role="main"] [style*="--chat-outgoing-message-background-gradient"] .x11jlvup {
+      background-image: var(--chat-outgoing-message-background-gradient) !important;
+      background-attachment: fixed !important;
+    }
+    :where(html[${CHATS}] [role="main"] [style*="linear-gradient"][style*="--chat-outgoing-message-background-gradient"]:has(.x11jlvup, .x1nr1p0w)) {
+      background-image: none !important;
     }
     /* The photo/video viewer centres its top bar (close, download, forward)
        in a band --header-height tall, made for Facebook's 56px bar; without

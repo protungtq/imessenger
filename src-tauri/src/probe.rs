@@ -1,25 +1,89 @@
 // Debug builds only, for checking the live page while developing:
-// FMESS_PROBE=<file.js> runs that file in the main window once the page has
-// loaded (after FMESS_PROBE_DELAY seconds, 15 by default) and prints what it
+// IMESSENGER_PROBE=<file.js> runs that file in the main window once the page has
+// loaded (after IMESSENGER_PROBE_DELAY seconds, 15 by default) and prints what it
 // returns. The file is a function body: it may `await` and must `return`.
-// FMESS_PROBE_WAIT=<seconds> waits that long for it (60 by default), for a
+// IMESSENGER_PROBE_WAIT=<seconds> waits that long for it (60 by default), for a
 // probe that waits for something only a person does, like someone typing.
-// FMESS_WINDOW_SIZE=<width>x<height> sizes the window first, and
-// FMESS_SNAPSHOT=<file.png> (macOS) then saves a picture of the page as the
+// IMESSENGER_NO_INJECT=1 (webview.rs) leaves iMessenger's page script out, to measure
+// what it costs.
+// IMESSENGER_WINDOW_SIZE=<width>x<height> sizes the window first, and
+// IMESSENGER_SNAPSHOT=<file.png> (macOS) then saves a picture of the page as the
 // probe left it, through WebKit, which needs no screen-recording permission.
+// Always, on stderr: each navigation of every window ([nav]), each popup
+// ([popup]) and the page's JS errors ([page]), URLs without query values
+// (see loggable).
 use std::{thread, time::Duration};
 
-use tauri::{AppHandle, LogicalSize, Manager, Runtime};
+use tauri::{AppHandle, LogicalSize, Manager, Runtime, Url};
+
+/// A URL as it may be printed: query keys only (values can be tokens), no
+/// fragment. Off Facebook only the host, as a path can say what was shared,
+/// and only the scheme of mailto:, tel: or data: (an address, a number, a file).
+pub fn loggable(url: &Url) -> String {
+    let host = match (url.scheme(), url.host_str()) {
+        ("about", _) => return url.as_str().to_owned(),
+        ("http" | "https", Some(host)) => host,
+        (scheme, _) => return format!("{scheme}:…"),
+    };
+    let on_facebook = ["facebook.com", "messenger.com", "fbcdn.net", "fbsbx.com", "facebook.net"]
+        .iter()
+        .any(|domain| host == *domain || host.ends_with(&format!(".{domain}")));
+    let mut out = format!("{}://{host}", url.scheme());
+    if !on_facebook {
+        return out + "/…";
+    }
+    out += url.path();
+    let keys: Vec<_> = url.query_pairs().map(|(key, _)| key.into_owned()).collect();
+    if !keys.is_empty() {
+        let keys = keys.join(",");
+        let keys: String = keys.chars().take(80).collect();
+        out += &format!("?{keys}");
+    }
+    out
+}
+
+pub fn log_navigation(label: &str, url: &Url, allowed: bool) {
+    let verdict = if allowed {
+        "allowed"
+    } else if matches!(url.scheme(), "http" | "https" | "mailto" | "tel") {
+        "opened externally"
+    } else {
+        "blocked"
+    };
+    eprintln!("[nav] {label} {verdict} {}", loggable(url));
+}
+
+/// Prints what inject.js collected in window.__imessengerErrors, from every window.
+fn watch_page_errors<R: Runtime>(app: AppHandle<R>) {
+    thread::spawn(move || loop {
+        thread::sleep(Duration::from_secs(2));
+        for (label, window) in app.webview_windows() {
+            let _ = window.eval_with_callback(
+                "JSON.stringify((window.__imessengerErrors || []).splice(0))",
+                move |result| {
+                    let entries = serde_json::from_str::<String>(&result)
+                        .ok()
+                        .and_then(|json| serde_json::from_str::<Vec<String>>(&json).ok())
+                        .unwrap_or_default();
+                    for entry in entries {
+                        eprintln!("[page] {label} {entry}");
+                    }
+                },
+            );
+        }
+    });
+}
 
 pub fn run<R: Runtime>(app: AppHandle<R>) {
-    let Some(path) = std::env::var_os("FMESS_PROBE") else {
+    watch_page_errors(app.clone());
+    let Some(path) = std::env::var_os("IMESSENGER_PROBE") else {
         return;
     };
-    let delay = std::env::var("FMESS_PROBE_DELAY")
+    let delay = std::env::var("IMESSENGER_PROBE_DELAY")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(15);
-    let wait: u64 = std::env::var("FMESS_PROBE_WAIT")
+    let wait: u64 = std::env::var("IMESSENGER_PROBE_WAIT")
         .ok()
         .and_then(|value| value.parse().ok())
         .unwrap_or(60);
@@ -32,7 +96,7 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
         let Some(window) = app.get_webview_window(crate::MAIN_WINDOW) else {
             return;
         };
-        if let Some((width, height)) = std::env::var("FMESS_WINDOW_SIZE").ok().and_then(|size| {
+        if let Some((width, height)) = std::env::var("IMESSENGER_WINDOW_SIZE").ok().and_then(|size| {
             let (width, height) = size.split_once('x')?;
             Some((width.parse::<f64>().ok()?, height.parse::<f64>().ok()?))
         }) {
@@ -44,21 +108,23 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
         let _ = window.set_focus();
         thread::sleep(Duration::from_millis(500));
         let _ = window.eval(format!(
-            "window.__fmessProbe = undefined; (async () => {{ {script}\n}})().then(\
-             (result) => {{ window.__fmessProbe = JSON.stringify(result ?? null); }},\
-             (error) => {{ window.__fmessProbe = JSON.stringify('error: ' + error); }});"
+            "window.__imessengerProbe = undefined; (async () => {{ {script}\n}})().then(\
+             (result) => {{ window.__imessengerProbe = JSON.stringify(result ?? null); }},\
+             (error) => {{ window.__imessengerProbe = JSON.stringify('error: ' + error); }});"
         ));
         for _ in 0..wait * 2 {
             thread::sleep(Duration::from_millis(500));
+            #[cfg(target_os = "macos")]
+            serve_snapshot_request(&window);
             let (tx, rx) = std::sync::mpsc::channel();
-            let _ = window.eval_with_callback("window.__fmessProbe ?? null", move |result| {
+            let _ = window.eval_with_callback("window.__imessengerProbe ?? null", move |result| {
                 let _ = tx.send(result);
             });
             match rx.recv_timeout(Duration::from_secs(5)) {
                 Ok(result) if result != "null" => {
                     eprintln!("[probe] {result}");
                     #[cfg(target_os = "macos")]
-                    if let Ok(path) = std::env::var("FMESS_SNAPSHOT") {
+                    if let Ok(path) = std::env::var("IMESSENGER_SNAPSHOT") {
                         snapshot(&window, path);
                     }
                     return;
@@ -70,13 +136,35 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
     });
 }
 
-/// Saves a picture of the page as a PNG, at the screen's scale.
+/// A probe can take pictures while it runs (tests/app/chat-check.js does,
+/// one per chat, look and mode): it sets window.__imessengerSnapshotRequest to a
+/// file path, and once the picture is saved, window.__imessengerSnapshotDone is
+/// that path.
+#[cfg(target_os = "macos")]
+fn serve_snapshot_request<R: Runtime>(window: &tauri::WebviewWindow<R>) {
+    let (tx, rx) = std::sync::mpsc::channel();
+    let _ = window.eval_with_callback("window.__imessengerSnapshotRequest ?? null", move |result| {
+        let _ = tx.send(result);
+    });
+    let Ok(result) = rx.recv_timeout(Duration::from_secs(5)) else {
+        return;
+    };
+    let Ok(Some(path)) = serde_json::from_str::<Option<String>>(&result) else {
+        return;
+    };
+    let _ = window.eval("window.__imessengerSnapshotRequest = null;");
+    snapshot(window, path);
+}
+
+/// Saves a picture of the page as a PNG, at the screen's scale, then sets
+/// window.__imessengerSnapshotDone to its path.
 #[cfg(target_os = "macos")]
 fn snapshot<R: Runtime>(window: &tauri::WebviewWindow<R>, path: String) {
     use block2::RcBlock;
     use objc2::{class, msg_send, rc::Retained, runtime::AnyObject};
     use objc2_foundation::NSString;
 
+    let page = window.clone();
     let _ = window.with_webview(move |webview| {
         let view = webview.inner().cast::<AnyObject>();
         let done = RcBlock::new(move |image: *mut AnyObject, _error: *mut AnyObject| {
@@ -92,6 +180,7 @@ fn snapshot<R: Runtime>(window: &tauri::WebviewWindow<R>, path: String) {
                 msg_send![png, writeToFile: &*NSString::from_str(&path), atomically: true]
             };
             eprintln!("[snapshot] {} {path}", if saved { "saved" } else { "not saved" });
+            let _ = page.eval(format!("window.__imessengerSnapshotDone = {};", serde_json::json!(path)));
         });
         // SAFETY: the platform web view is a WKWebView, on the main thread.
         unsafe {
@@ -102,4 +191,27 @@ fn snapshot<R: Runtime>(window: &tauri::WebviewWindow<R>, path: String) {
             let _: () = msg_send![view, takeSnapshotWithConfiguration: &*config, completionHandler: &*done];
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::loggable;
+    use tauri::Url;
+
+    fn log(url: &str) -> String {
+        loggable(&Url::parse(url).unwrap())
+    }
+
+    #[test]
+    fn logged_urls_keep_no_private_parts() {
+        assert_eq!(
+            log("https://www.facebook.com/messages/t/123/?token=abc&x=1#frag"),
+            "https://www.facebook.com/messages/t/123/?token,x"
+        );
+        assert_eq!(log("https://example.com/private/path?q=secret"), "https://example.com/…");
+        assert_eq!(log("mailto:someone@example.com"), "mailto:…");
+        assert_eq!(log("tel:+84123456789"), "tel:…");
+        assert_eq!(log("data:text/plain,hello"), "data:…");
+        assert_eq!(log("about:blank"), "about:blank");
+    }
 }

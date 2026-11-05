@@ -14,15 +14,17 @@
   // counts as away whenever its window isn't the active one. Only that one
   // check changes (FACTORY_REWRITES); patching isMessengerPWA or VisibilityAPI
   // themselves changed far more of the page and made it sluggish.
-  // iMessenger passes its settings in before this script (window.__fmessSettings);
+  // iMessenger passes its settings in before this script (window.__imessengerSettings);
   // a change to this one reloads the page and comes through localStorage.
-  const settings = window.__fmessSettings ?? {};
+  const settings = window.__imessengerSettings ?? {};
   let macCalls = settings.macCalls !== false;
   try {
-    const changed = localStorage.getItem('fmess.macCalls');
+    const changed = localStorage.getItem('imessenger.macCalls');
     if (changed !== null) macCalls = changed !== '0';
   } catch {}
   const FORCED_GATES = macCalls ? { 16078: true } : {};
+  // While above zero, a media element's play() is Messenger's own sound.
+  let soundPlayerCalls = 0;
   const MODULE_PATCHES = {
     gkx(exports) {
       const gkx = exports.default;
@@ -36,6 +38,23 @@
     // Facebook pops its own notifications (group posts, likes) over the page
     // unless the route asks it not to; in iMessenger no route wants them. The
     // notifications under the bell in Facebook's top bar stay.
+    // Messenger's own sounds (a message, a sent one) are played by
+    // SoundPlayer.play, from <audio> elements it keeps in the page. iMessenger
+    // plays those through Web Audio (see playSound), and only those: voice
+    // messages and other audio stay media elements.
+    SoundPlayer(exports) {
+      const play = exports.play;
+      if (typeof play !== 'function') return false;
+      exports.play = function (...args) {
+        soundPlayerCalls += 1;
+        try {
+          return play.apply(this, args);
+        } finally {
+          soundPlayerCalls -= 1;
+        }
+      };
+      return true;
+    },
     useHideNotificationsToasts(exports) {
       if (typeof exports.default !== 'function') return false;
       exports.default = () => true;
@@ -53,6 +72,10 @@
           const details = readMessageDetails(db, message).catch(() => null);
           messageDetails.set(String(message?.messageId), details);
           if (messageDetails.size > 50) messageDetails.delete(messageDetails.keys().next().value);
+          try {
+            pageMessages.set(String(message?.messageId), { thread: String(int64(message.threadKey)), sent: Number(int64(message.timestampMs)) });
+            if (pageMessages.size > 50) pageMessages.delete(pageMessages.keys().next().value);
+          } catch {}
           return trigger.call(this, db, message, ...rest);
         };
         // A computer back from sleep gets the messages it missed one by one,
@@ -73,7 +96,7 @@
         const contextModule = window.require('CometDarkModeContext');
         const context = contextModule?.$$typeof ? contextModule : contextModule?.default;
         const ReadSetter = () => {
-          window.__fmessSetDarkMode = React.useContext(context).setDarkModeSetting;
+          window.__imessengerSetDarkMode = React.useContext(context).setDarkModeSetting;
           return null;
         };
         return (props) => React.createElement(Provider, props, React.createElement(ReadSetter), props.children);
@@ -98,7 +121,7 @@
       if (source.match(new RegExp(pattern.source, 'g'))?.length !== 1) return;
       source = source.replace(pattern, replacement);
     }
-    const key = `fmess:${name}`;
+    const key = `imessenger:${name}`;
     const script = document.createElement('script');
     script.src = URL.createObjectURL(
       new Blob([`window[${JSON.stringify(key)}] = (${source});`], { type: 'text/javascript' }),
@@ -144,6 +167,6 @@
   // nothing. Navigate to a URL iMessenger watches for instead; it closes the window
   // (and ignores the request in the main window). See CLOSE_WINDOW_URL in webview.rs.
   window.close = () => {
-    location.href = 'fmess://close-window';
+    location.href = 'imessenger://close-window';
   };
 

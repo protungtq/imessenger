@@ -2,16 +2,16 @@
   // last in the page so it wins over Facebook's. A light theme ("mode: light")
   // also gets Facebook's light colours in dark mode, copied from Facebook's
   // own stylesheets.
-  const THEME = 'fmess-theme';
+  const THEME = 'imessenger-theme';
   let theme = null;
   // Under every theme. The bar above the message box (replying, a link's
   // preview) has fixed heights made for Facebook's type; a theme's larger
   // type overflowed them, its second line on the line below.
   const UNDER_EVERY_THEME = `
-    html[${CHATS}] [data-fmess-ui="composer-bar"],
-    html[${CHATS}] [data-fmess-ui="composer-bar"] > div,
-    html[${CHATS}] [data-fmess-ui="composer-bar"] > div > div { height: auto !important; }
-    html[${CHATS}] [data-fmess-ui="composer-bar"] > div { padding-bottom: 8px !important; }
+    html[${CHATS}] [data-imessenger-ui="composer-bar"],
+    html[${CHATS}] [data-imessenger-ui="composer-bar"] > div,
+    html[${CHATS}] [data-imessenger-ui="composer-bar"] > div > div { height: auto !important; }
+    html[${CHATS}] [data-imessenger-ui="composer-bar"] > div { padding-bottom: 8px !important; }
   `;
   const lightColours = () => {
     let colours = '';
@@ -36,7 +36,7 @@
     theme = next?.css && !window.opener ? next : null;
     // What the last theme asked for goes now, not at the next hover: its
     // quick reactions, and its buttons are read again.
-    for (const group of document.querySelectorAll('.fmess-quick-reactions')) group.remove();
+    for (const group of document.querySelectorAll('.imessenger-quick-reactions')) group.remove();
     quickReactions.at = 0;
     windowButtons.at = 0;
     withRoot((root) => {
@@ -55,10 +55,11 @@
   window.addEventListener('load', () => theme && applyTheme(theme));
 
   // Called by iMessenger after every page load and when its settings change.
-  window.__fmessApplySettings = (next) => {
+  window.__imessengerApplySettings = (next) => {
     privacy.blockTyping = Boolean(next.blockTyping);
     language = next.lang;
     setHideAvatars(Boolean(next.hideAvatars));
+    setSpellCheck(next.spellCheck !== false);
     if (next.theme?.css !== theme?.css || Boolean(next.theme?.light) !== Boolean(theme?.light)) applyTheme(next.theme);
   };
 })();

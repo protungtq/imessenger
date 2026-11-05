@@ -19,14 +19,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/protungtq/imessenger/releases/latest"><img src="https://img.shields.io/github/v/release/toanbku/fmess?label=release" alt="Latest release"></a>
-  <a href="https://github.com/toanbku/fmess/actions/workflows/ci.yml"><img src="https://github.com/toanbku/fmess/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/toanbku/fmess" alt="MIT license"></a>
+  <a href="https://github.com/protungtq/imessenger/releases/latest"><img src="https://img.shields.io/github/v/release/toanbku/imessenger?label=release" alt="Latest release"></a>
+  <a href="https://github.com/protungtq/imessenger/actions/workflows/ci.yml"><img src="https://github.com/protungtq/imessenger/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/toanbku/imessenger" alt="MIT license"></a>
 </p>
 
 
 Meta shut down the Messenger desktop apps in December 2025 and messenger.com in
-April 2026; chats on the web now live at facebook.com/messages. fMess gives them
+April 2026; chats on the web now live at facebook.com/messages. iMessenger gives them
 a window of their own again and makes it feel like the old app.
 
 ## Features
@@ -38,14 +38,14 @@ a window of their own again and makes it feel like the old app.
   over the page like the old app.
 - **Block Typing.** Nobody sees "typing…" while you draft.
 - **Messenger's settings in one place.** Sounds, Do Not Disturb, dark mode and
-  active status next to fMess's own, synced with your phone.
+  active status next to iMessenger's own, synced with your phone.
 - **Keyboard first.** Shortcuts below; opening a chat puts the cursor in its message box.
 - **Zoomable photos.** Pinch or double-click in the photo viewer.
 - **Always there.** Unread badge on the Dock or taskbar, a tray icon, keeps running
   when the window is closed.
 - **Clean links.** Links in chats open in your browser without Facebook's
   redirect and tracking tags.
-- **Updates itself.** fMess checks GitHub for new versions and installs them
+- **Updates itself.** iMessenger checks GitHub for new versions and installs them
   when you say so.
 - **Small.** A few MB, because it uses the system webview instead of bundling Chromium.
 
@@ -61,14 +61,14 @@ Download the build for your system from the
 | Windows 10 and 11 | [iMessenger-windows-setup.exe](https://github.com/protungtq/imessenger/releases/latest/download/iMessenger-windows-setup.exe) |
 | Linux | [AppImage](https://github.com/protungtq/imessenger/releases/latest/download/iMessenger-linux.AppImage) · [.deb](https://github.com/protungtq/imessenger/releases/latest/download/iMessenger-linux.deb) · [.rpm](https://github.com/protungtq/imessenger/releases/latest/download/iMessenger-linux.rpm) |
 
-On a Mac you can also use Homebrew: `brew install --cask toanbku/tap/fmess`.
+On a Mac you can also use Homebrew: `brew install --cask toanbku/tap/imessenger`.
 
 The Mac app is signed and notarized by Apple, so it opens like any other app.
 
 If Windows says it protected your PC, click **More info**, then **Run anyway**:
-fMess isn't code-signed for Windows yet, so SmartScreen doesn't know it.
+iMessenger isn't code-signed for Windows yet, so SmartScreen doesn't know it.
 
-If fMess says it can't find the WebView2 Runtime, install it from [Microsoft's WebView2 page](https://developer.microsoft.com/microsoft-edge/webview2) (Evergreen): Windows 10 and 11 include it, but some trimmed-down builds remove it.
+If iMessenger says it can't find the WebView2 Runtime, install it from [Microsoft's WebView2 page](https://developer.microsoft.com/microsoft-edge/webview2) (Evergreen): Windows 10 and 11 include it, but some trimmed-down builds remove it.
 
 ## Keyboard shortcuts
 
@@ -88,7 +88,7 @@ On Windows and Linux, use Ctrl instead of ⌘.
 
 Checked on November 1, 2026: each project's GitHub page, its latest Mac download (Apple silicon) and macOS's own signature check.
 
-| | fMess | [Messenger Next](https://github.com/rozsazoltan/messenger) | [Caprine](https://github.com/sindresorhus/caprine) | [Ferdium](https://github.com/ferdium/ferdium-app) | A browser tab |
+| | iMessenger | [Messenger Next](https://github.com/rozsazoltan/messenger) | [Caprine](https://github.com/sindresorhus/caprine) | [Ferdium](https://github.com/ferdium/ferdium-app) | A browser tab |
 |---|---|---|---|---|---|
 | Made for | Messenger | Messenger | Messenger | Many services in one app | All of Facebook, feed included |
 | Source code | Open (MIT) | Closed | Open (MIT) | Open (Apache 2.0) | – |
@@ -97,13 +97,13 @@ Checked on November 1, 2026: each project's GitHub page, its latest Mac download
 | Mac app signed | Yes, notarized | No | Yes | Yes, notarized | – |
 | Latest release | November 2026 | September 2026 | January 2026, before messenger.com closed | September 2026 | – |
 
-Why the source matters: a Messenger app holds your Facebook login and sees every message. fMess's code is public, so anyone can check what it does with them and build it themselves; a closed-source app has to be taken on its developer's word.
+Why the source matters: a Messenger app holds your Facebook login and sees every message. iMessenger's code is public, so anyone can check what it does with them and build it themselves; a closed-source app has to be taken on its developer's word.
 
 ## Privacy
 
-fMess shows facebook.com/messages in your system's own webview. You sign in on
-Facebook's page; fMess never sees your password, has no server and sends no
-analytics. The page can ask fMess for only a handful of things, like showing a
+iMessenger shows facebook.com/messages in your system's own webview. You sign in on
+Facebook's page; iMessenger never sees your password, has no server and sends no
+analytics. The page can ask iMessenger for only a handful of things, like showing a
 notification (`src-tauri/capabilities/messenger-web.json`); it can't read your
 files or run programs.
 
@@ -128,26 +128,22 @@ Other builds show plain notifications.
 ## Releasing
 
 1. Bump the version in `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` and `package.json`.
-2. Push a tag such as `v0.2.0`. The [Release workflow](.github/workflows/release.yml)
-   builds every platform into a draft release, with signed update archives and `latest.json`.
-3. Publish the draft. Installed copies offer the update within a few hours, or
-   right away from **Check for Updates…**.
-
-The website in `site/` is deployed to [fmess.app](https://fmess.app) by
-[GitHub Pages](.github/workflows/pages.yml) on every push to `main`.
+2. Push a tag such as `v1.1.0`. The [Release workflow](.github/workflows/release.yml)
+   builds every platform into a draft release from `RELEASE_NOTES.md`.
+3. Publish the draft. Users download the new build from the Releases page.
 
 ## How it works
 
-The window loads facebook.com/messages directly. fMess adds one script to the
+The window loads facebook.com/messages directly. iMessenger adds one script to the
 page (`src-tauri/src/inject/`, joined into one script at build time) that restyles it through Facebook's own CSS
 variables, adds the shortcuts and settings, and hands notifications to the
 operating system. Calls in encrypted chats use Facebook's own WebKit path,
-which Facebook keeps behind a flag; fMess turns it on (Settings → Calls).
+which Facebook keeps behind a flag; iMessenger turns it on (Settings → Calls).
 
 ## Known limitations
 
 - Facebook changes its web app often; an update on their side can break something
-  until fMess catches up.
+  until iMessenger catches up.
 - On Linux, calls depend on WebKitGTK's WebRTC support.
 - On Windows and Linux, the webview may throttle a hidden window.
 
@@ -155,7 +151,7 @@ which Facebook keeps behind a flag; fMess turns it on (Settings → Calls).
 
 Made with ♥ by [Toan Ho](https://github.com/toanbku).
 
-fMess is not affiliated with, endorsed by or sponsored by Meta Platforms, Inc.
+iMessenger is not affiliated with, endorsed by or sponsored by Meta Platforms, Inc.
 Messenger and Facebook are trademarks of Meta Platforms, Inc.
 
 ## License

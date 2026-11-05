@@ -34,6 +34,61 @@
     },
     true,
   );
+  // Spell check (iMessenger Settings). It knows only the system's languages, so on
+  // a Windows set up in English nearly every Vietnamese word was underlined
+  // in red; turned off, fields don't check spelling. Fields are turned off as
+  // they take the focus, so a message box Facebook draws again is too.
+  let spellCheck = settings.spellCheck !== false;
+  const UNCHECKED = 'data-imessenger-unchecked';
+  const FIELDS = 'input, textarea, [contenteditable="true"]';
+  const uncheck = (field) => {
+    if (!field?.spellcheck) return;
+    field.spellcheck = false;
+    field.setAttribute(UNCHECKED, '');
+  };
+  document.addEventListener(
+    'focusin',
+    (event) => !spellCheck && event.target instanceof Element && uncheck(event.target.closest(FIELDS)),
+    true,
+  );
+  function setSpellCheck(on) {
+    spellCheck = on;
+    if (!on) return uncheck(document.activeElement?.closest?.(FIELDS));
+    for (const field of document.querySelectorAll(`[${UNCHECKED}]`)) {
+      field.removeAttribute(UNCHECKED);
+      field.spellcheck = true;
+    }
+  }
+  // Copy Image in WebKit's menu leaves the picture along with its address, as
+  // text and as an <img> in HTML, and Messenger's box then took the address
+  // instead of the picture. Such a paste reaches Messenger with the picture
+  // alone, as from Chrome; other pastes are left as they are.
+  const repasted = new WeakSet();
+  const onlyItsAddress = (data) => {
+    const text = data.getData('text/plain').trim();
+    const html = data.getData('text/html');
+    if (!text && !html) return false;
+    if (text && !/^(https?|blob|data):\S+$/.test(text)) return false;
+    if (!html) return true;
+    const body = new DOMParser().parseFromString(html, 'text/html').body;
+    return !body.textContent.trim() && body.querySelector('img') !== null;
+  };
+  document.addEventListener(
+    'paste',
+    (event) => {
+      const data = event.clipboardData;
+      if (repasted.has(event) || !data?.files.length || !(event.target instanceof Element) || !event.target.closest(FIELDS)) return;
+      if (![...data.files].every((file) => file.type.startsWith('image/')) || !onlyItsAddress(data)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const pictures = new DataTransfer();
+      for (const file of data.files) pictures.items.add(file);
+      const again = new ClipboardEvent('paste', { clipboardData: pictures, bubbles: true, cancelable: true });
+      repasted.add(again);
+      event.target.dispatchEvent(again);
+    },
+    true,
+  );
   if (titleBarInset) {
     const dragStrip = document.createElement('div');
     dragStrip.setAttribute('data-tauri-drag-region', '');

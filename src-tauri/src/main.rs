@@ -3,6 +3,7 @@
 
 mod about;
 mod badge;
+mod downloads;
 mod i18n;
 mod icon;
 mod links;
@@ -42,6 +43,14 @@ fn main() {
             tauri_plugin_window_state::Builder::default()
                 // Closing only hides the window, so never restore it hidden.
                 .with_state_flags(StateFlags::all() & !StateFlags::VISIBLE)
+                // Not popups: they open centred on iMessenger's window anyway. On
+                // Windows restoring one froze iMessenger. A popup is built on the
+                // main thread, inside WebView2's new-window callback, and this
+                // plugin moved it while Tauri held its plugin lock; the move's
+                // own window events then waited for that lock forever. Labels
+                // start again at popup-1 each run, so every call after the
+                // first one closed hung.
+                .with_filter(|label| !label.starts_with(webview::POPUP_PREFIX))
                 .build(),
         )
         .plugin(tauri_plugin_autostart::Builder::new().arg(AUTOSTART_ARG).build())
@@ -54,6 +63,7 @@ fn main() {
             notify::clear_notifications,
             notify::test_notification,
             badge::set_unread_count,
+            downloads::show_download,
             settings::get_settings,
             settings::update_settings,
             settings::sync_messenger_prefs,
@@ -64,6 +74,9 @@ fn main() {
             themes::list_themes,
             themes::add_theme,
             themes::remove_theme,
+            icon::choose_app_icon,
+            icon::reset_app_icon,
+            update::check_for_updates,
             webview::set_viewer_open,
             menu::show_account_menu,
             menu::menu_shortcut,

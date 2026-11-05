@@ -1,11 +1,11 @@
-"""iMessenger icon: a white i (dot + stem, drawn as strokes like fMess's f) on a
+"""iMessenger icon: a white i (dot + stem, drawn as strokes like iMessenger's f) on a
 cyan-to-blue-to-violet gradient, in Apple's rounded square, drawn per size.
 
     python3 branding/icon-imessenger.py OUT_DIR   # icon-16.svg ... icon-1024.svg
 
 Render each SVG at its own size with cairosvg, copy icon-1024.png to
 app-icon.png and run `npx tauri icon app-icon.png` for the platform icon set.
-Based on branding/icon.py from fMess (MIT)."""
+Based on branding/icon.py from iMessenger (MIT)."""
 import math, pathlib, sys
 
 def superellipse(cx, cy, w, h, n, steps=720):

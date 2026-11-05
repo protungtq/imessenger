@@ -41,6 +41,12 @@ pub fn check_now<R: Runtime>(app: &AppHandle<R>) {
     tauri::async_runtime::spawn(async move { check(&app, true).await });
 }
 
+/// Settings' Check Now, for people who don't find it in the menu.
+#[tauri::command]
+pub fn check_for_updates<R: Runtime>(app: AppHandle<R>) {
+    check_now(&app);
+}
+
 async fn check<R: Runtime>(app: &AppHandle<R>, asked: bool) {
     let found = match app.updater() {
         Ok(updater) => updater.check().await,
@@ -77,7 +83,7 @@ async fn check<R: Runtime>(app: &AppHandle<R>, asked: bool) {
         _ => {
             #[cfg(debug_assertions)]
             if let Err(err) = found {
-                eprintln!("[fmess] update check failed: {err}");
+                eprintln!("[imessenger] update check failed: {err}");
             }
         }
     }
@@ -87,7 +93,7 @@ async fn check<R: Runtime>(app: &AppHandle<R>, asked: bool) {
 /// (iMessenger-windows-portable.exe, for computers that don't allow installing
 /// software): its updates are downloaded for the user to use in its place,
 /// not installed.
-const PORTABLE: bool = option_env!("FMESS_PORTABLE").is_some();
+const PORTABLE: bool = option_env!("IMESSENGER_PORTABLE").is_some();
 const PORTABLE_DOWNLOAD: &str = "https://github.com/protungtq/imessenger/releases/latest/download/iMessenger-windows-portable.exe";
 
 fn offer<R: Runtime>(app: &AppHandle<R>, update: Update) {

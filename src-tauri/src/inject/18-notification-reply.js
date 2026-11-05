@@ -1,8 +1,8 @@
   // Called from Rust when the user clicks a native notification.
-  window.__fmessNotificationClicked = (id, thread) => {
+  window.__imessengerNotificationClicked = (id, thread) => {
     const notification = shown.get(id);
     window.focus();
-    if (notification) notification.fmessFire('click');
+    if (notification) notification.imessengerFire('click');
     else if (thread) chatLinks().find((row) => new RegExp(`/t/${thread}/?$`).test(row.getAttribute('href')))?.click();
   };
 
@@ -20,7 +20,7 @@
   const openChat = (id, thread) => {
     // Messenger's own handler for the notification knows the chat's kind.
     const notification = shown.get(id);
-    if (notification) return notification.fmessFire('click');
+    if (notification) return notification.imessengerFire('click');
     const row = chatLinks().find((link) => new RegExp(`/t/${thread}/?$`).test(link.getAttribute('href')));
     if (row) return row.click();
     history.pushState(null, '', `/messages/t/${thread}/`);
@@ -29,7 +29,7 @@
   // One reply at a time: a second one opens its chat, which would take the
   // message box from a first one still typing.
   let replying = Promise.resolve();
-  window.__fmessReply = (id, thread, text) => {
+  window.__imessengerReply = (id, thread, text) => {
     const reply = replying.then(() => replyNow(id, thread, text));
     replying = reply.catch(() => {});
     return reply;
@@ -55,7 +55,7 @@
     // Kept until it is really back.
     if (await waitFor(() => box.isConnected && box.textContent.includes(draft.trim()), 2000)) strayDrafts.delete(thread);
   };
-  window.__fmessReturnDraft = returnStrayDraft;
+  window.__imessengerReturnDraft = returnStrayDraft;
   const replyNow = async (id, thread, text) => {
     const inChat = () => new RegExp(`^/messages/(?:e2ee/)?t/${thread}/?$`).test(location.pathname);
     const before = location.pathname;
@@ -106,14 +106,14 @@
     if (draftOut) strayDrafts.set(thread, draft);
     if (!sent) {
       // Say so, and keep the reply: clicking opens the chat.
-      const notice = new FMessNotification(say('Reply not sent', 'Chưa gửi được tin trả lời'), {
+      const notice = new iMessengerNotification(say('Reply not sent', 'Chưa gửi được tin trả lời'), {
         body: draftOut ? `${text}\n\n${say('Your draft', 'Bản nháp của bạn')}: ${draft}` : text,
       });
       notice.onclick = () => openChat(id, thread);
       return false;
     }
     if (draftOut) {
-      const notice = new FMessNotification(say('Your draft is kept', 'Bản nháp của bạn vẫn còn'), { body: draft });
+      const notice = new iMessengerNotification(say('Your draft is kept', 'Bản nháp của bạn vẫn còn'), { body: draft });
       notice.onclick = () => openChat(id, thread);
     }
     // Back to the chat that was open, unless another one has been opened since.

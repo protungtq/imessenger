@@ -1,8 +1,8 @@
 [package]
 name = "imessenger"
-version = "1.0.0"
+version = "1.1.0"
 description = "iMessenger — unofficial desktop client for Messenger on the web (based on fMess)"
-authors = ["protungtq", "toanbku"]
+authors = ["toanbku"]
 license = "MIT"
 edition = "2021"
 rust-version = "1.80"
@@ -11,7 +11,7 @@ rust-version = "1.80"
 tauri-build = { version = "2.7.4", features = [] }
 
 [dependencies]
-tauri = { version = "2.12.5", features = ["tray-icon", "image-png"] }
+tauri = { version = "2.12.5", features = ["tray-icon", "image-png", "image-ico"] }
 tauri-plugin-notification = "2.8.0"
 tauri-plugin-opener = "2.7.2"
 tauri-plugin-window-state = "2.5.0"
@@ -56,7 +56,9 @@ objc2-foundation = { version = "0.3.2", default-features = false, features = [
     "NSAttributedString",
     "NSData",
     "NSDictionary",
+    "NSDistributedNotificationCenter",
     "NSError",
+    "NSNotification",
     "NSObject",
     "NSRange",
     "NSSet",
@@ -94,4 +96,7 @@ objc2-user-notifications = { version = "0.3.2", default-features = false, featur
 ] }
 
 [target.'cfg(windows)'.dependencies]
+# The photo viewer turns WebView2's zoom gestures on and off (webview.rs).
+webview2-com = "0.39"
+windows-core = "0.62"
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_Registry", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }

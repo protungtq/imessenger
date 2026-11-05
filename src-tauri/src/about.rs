@@ -5,9 +5,9 @@ use tauri::{AppHandle, Runtime};
 
 use crate::i18n::{self, Lang};
 
-pub const REPOSITORY: &str = "https://github.com/toanbku/fmess";
+pub const REPOSITORY: &str = "https://github.com/protungtq/imessenger";
 const AUTHOR: (&str, &str) = ("Toan Ho", "https://github.com/toanbku");
-const WEBSITE: &str = "https://fmess.app";
+const WEBSITE: &str = "https://github.com/protungtq/imessenger";
 
 #[cfg(target_os = "macos")]
 pub fn show<R: Runtime>(app: &AppHandle<R>) {

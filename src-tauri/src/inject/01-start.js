@@ -2,16 +2,16 @@
 // and hands web notifications to the OS notification center.
 // Runs at document start, before the page's scripts.
 (() => {
-  if (window.top !== window || window.__fmessInstalled) return;
-  window.__fmessInstalled = true;
+  if (window.top !== window || window.__imessengerInstalled) return;
+  window.__imessengerInstalled = true;
 
-  // Debug builds (window.__fmessDebug, see webview.rs): note who adds wheel,
+  // Debug builds (window.__imessengerDebug, see webview.rs): note who adds wheel,
   // touch and scroll listeners and whether they can cancel scrolling, for
-  // probes (window.__fmessListenerLog). A wheel listener that isn't passive
+  // probes (window.__imessengerListenerLog). A wheel listener that isn't passive
   // makes WebKit hold the first event of every scroll gesture until the page
   // has run it.
-  if (window.__fmessDebug) {
-    const listenerLog = (window.__fmessListenerLog = []);
+  if (window.__imessengerDebug) {
+    const listenerLog = (window.__imessengerListenerLog = []);
     const WATCHED = new Set(['wheel', 'mousewheel', 'touchstart', 'touchmove', 'scroll']);
     const describe = (target) => {
       if (target === window) return 'window';
@@ -33,6 +33,41 @@
         });
       }
       return nativeAdd.call(this, type, listener, options);
+    };
+
+    // The page's errors, printed by probe.rs. Query strings and URL fragments
+    // are cut, as they can carry tokens, and objects show only their type, as
+    // they can hold names or message text.
+    const errors = (window.__imessengerErrors = []);
+    const show = (part) => {
+      if (part instanceof Error) return `${part.name}: ${part.message}`;
+      if (typeof part === 'function') return '[function]';
+      if (part === null || typeof part !== 'object') return String(part);
+      try {
+        return `[${part.constructor?.name || 'object'}]`;
+      } catch {
+        return '[object]';
+      }
+    };
+    const note = (kind, parts) => {
+      if (errors.length >= 200) return;
+      const text = parts
+        .map(show)
+        .join(' ')
+        .replace(/\?[^\s"')]*/g, '?…')
+        .replace(/(\S)#[^\s"')]*/g, '$1#…')
+        .slice(0, 500);
+      errors.push(`${kind} ${text}`);
+    };
+    window.addEventListener('error', (event) => {
+      const where = event.filename ? `(${event.filename}:${event.lineno})` : '';
+      note('error', [event.error ?? event.message, where]);
+    });
+    window.addEventListener('unhandledrejection', (event) => note('unhandledrejection', [event.reason]));
+    const nativeError = console.error;
+    console.error = function (...args) {
+      note('console.error', args);
+      return nativeError.apply(this, args);
     };
   }
 

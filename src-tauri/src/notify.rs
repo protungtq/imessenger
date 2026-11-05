@@ -43,7 +43,7 @@ pub async fn notify<R: Runtime>(
 ) -> Result<(), String> {
     #[cfg(debug_assertions)]
     eprintln!(
-        "[fmess] notify #{id}: {title} (thread {:?}, group {})",
+        "[imessenger] notify #{id}: {title} (thread {:?}, group {})",
         message.as_ref().map(|message| &message.thread),
         message.as_ref().is_some_and(|message| message.group.is_some())
     );
@@ -72,7 +72,7 @@ pub async fn notify<R: Runtime>(
                 attachments_dir: app.path().app_cache_dir().ok().map(|dir| dir.join("notifications")),
             }
         } else {
-            communication::Notification::plain(id, "iMessenger", new_message)
+            communication::Notification::plain(id, settings.app_name(), new_message)
         };
         communication::show(notification);
         return Ok(());
@@ -81,7 +81,7 @@ pub async fn notify<R: Runtime>(
     let (title, body) = if settings.notification_preview {
         (title, body)
     } else {
-        ("iMessenger".to_owned(), new_message.to_owned())
+        (settings.app_name().to_owned(), new_message.to_owned())
     };
     app.notification()
         .builder()
@@ -96,7 +96,8 @@ pub async fn notify<R: Runtime>(
 /// path messages use, and says what went wrong when it can.
 #[tauri::command]
 pub fn test_notification<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
-    let (title, body) = ("iMessenger", pick(i18n::current(&app), "Notifications are working.", "Thông báo đã hoạt động."));
+    let settings = settings::current(&app);
+    let (title, body) = (settings.app_name(), pick(i18n::current(&app), "Notifications are working.", "Thông báo đã hoạt động."));
     #[cfg(target_os = "macos")]
     if communication::available() {
         communication::show(communication::Notification::plain(0, title, body));
@@ -216,7 +217,7 @@ fn send_reply<R: Runtime>(app: &AppHandle<R>, id: i32, thread: String, text: Str
     let _ = app.run_on_main_thread(move || {
         if let Some(window) = app_for_main.get_webview_window(MAIN_WINDOW) {
             let args = serde_json::to_string(&(id, thread, text)).expect("JSON serializes");
-            let _ = window.eval(format!("window.__fmessReply?.(...{args})"));
+            let _ = window.eval(format!("window.__imessengerReply?.(...{args})"));
         }
     });
 }
@@ -228,7 +229,7 @@ fn open_clicked<R: Runtime>(app: &AppHandle<R>, id: i32, thread: Option<String>)
         show_main_window(&app_for_main);
         if let Some(window) = app_for_main.get_webview_window(MAIN_WINDOW) {
             let thread = serde_json::to_string(&thread).expect("JSON serializes");
-            let _ = window.eval(format!("window.__fmessNotificationClicked?.({id}, {thread})"));
+            let _ = window.eval(format!("window.__imessengerNotificationClicked?.({id}, {thread})"));
         }
     });
 }
@@ -308,7 +309,7 @@ mod communication {
 
     define_class!(
         #[unsafe(super(NSObject))]
-        #[name = "FMessNotificationDelegate"]
+        #[name = "iMessengerNotificationDelegate"]
         struct Delegate;
 
         unsafe impl NSObjectProtocol for Delegate {}
@@ -435,7 +436,7 @@ mod communication {
         let id = notification.id;
         let done = RcBlock::new(move |error: *mut NSError| match unsafe { error.as_ref() } {
             Some(error) => eprintln!("could not show a notification: {error}"),
-            None if cfg!(debug_assertions) => eprintln!("[fmess] notification #{id} delivered"),
+            None if cfg!(debug_assertions) => eprintln!("[imessenger] notification #{id} delivered"),
             None => {}
         });
         UNUserNotificationCenter::currentNotificationCenter().addNotificationRequest_withCompletionHandler(&request, Some(&done));

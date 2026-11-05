@@ -84,7 +84,7 @@
 
   /* Flat controls: WebKit's own popup buttons keep a light gradient that
      smears in the dark theme. */
-  select, button {
+  select, button, input[type="text"] {
     font: inherit;
     color: var(--text);
     background-color: var(--control);
@@ -94,6 +94,7 @@
     min-height: 26px;
     box-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.08);
   }
+  input[type="text"] { width: 160px; box-shadow: none; }
   select {
     -webkit-appearance: none;
     appearance: none;
@@ -183,6 +184,12 @@
         <option value="vi">Tiếng Việt</option>
       </select>
     </label>
+    <label class="row" data-not="macos">
+      <span class="label"><span data-i18n="spellCheck">Check spelling</span>
+        <span class="hint" data-i18n="spellCheckHint">Underlines misspelled words as you type. If words in your language get underlined even when they're right, just turn this off.</span>
+      </span>
+      <span class="switch"><input type="checkbox" data-key="spellCheck"><span></span></span>
+    </label>
     <label class="row">
       <span class="label" data-i18n="launchAtLogin">Open iMessenger at login</span>
       <span class="switch"><input type="checkbox" data-key="launchAtLogin"><span></span></span>
@@ -199,6 +206,12 @@
       </span>
       <span class="switch"><input type="checkbox" data-key="closeToTray"><span></span></span>
     </label>
+    <div class="row">
+      <span class="label"><span data-i18n="updates">Updates</span>
+        <span class="hint"><span id="version"></span> <span data-i18n="updatesHint">You'll be told when a new version is out; check now if you'd rather not wait.</span></span>
+      </span>
+      <button type="button" id="check-updates" data-i18n="checkNow">Check Now</button>
+    </div>
   </div>
 
   <h2>Messenger</h2>
@@ -308,6 +321,21 @@
       </span>
       <span class="switch"><input type="checkbox" data-key="themeIcon"><span></span></span>
     </label>
+    <div class="row">
+      <span class="label"><span data-i18n="appIcon">App icon</span>
+        <span class="hint" data-i18n="appIconHint">Use your own .png or .ico picture as iMessenger's icon in the Dock, taskbar and tray. The loading screen shows it from the next start.</span>
+      </span>
+      <span class="controls">
+        <button type="button" id="choose-icon" data-i18n="choose">Choose…</button>
+        <button type="button" id="reset-icon" data-i18n="reset" hidden>Reset</button>
+      </span>
+    </div>
+    <label class="row">
+      <span class="label"><span data-i18n="appName">App name</span>
+        <span class="hint" data-i18n="appNameHint">Shown on iMessenger's windows, tray icon and notifications. The Dock, Start menu and Finder keep the name iMessenger.</span>
+      </span>
+      <input type="text" data-key="appName" placeholder="iMessenger" maxlength="40" spellcheck="false" autocomplete="off">
+    </label>
     <label class="row">
       <span class="label"><span data-i18n="hideAvatars">Hide profile pictures</span>
         <span class="hint" data-i18n="hideAvatarsHint">Shows people's initials instead, for screens others can see.</span>
@@ -355,12 +383,17 @@
     general: 'Chung',
     language: 'Ngôn ngữ',
     languageHint: 'Menu và cửa sổ của iMessenger. Messenger theo ngôn ngữ tài khoản Facebook.',
+    spellCheck: 'Kiểm tra chính tả',
+    spellCheckHint: 'Tự động gạch chân đỏ những từ gõ sai. Nếu gõ tiếng Việt đúng mà vẫn bị gạch, bạn chỉ cần tắt tính năng này đi.',
     automatic: 'Tự động',
     launchAtLogin: 'Mở iMessenger khi đăng nhập máy',
     startHidden: 'Mở ở chế độ chạy nền',
     startHiddenHint: 'Khi tự mở lúc đăng nhập, iMessenger nằm ở <span data-tray></span> thay vì hiện cửa sổ.',
     closeToTray: 'Vẫn chạy khi đóng cửa sổ',
     closeToTrayHint: 'iMessenger nằm ở <span data-tray></span> nên vẫn nhận được tin nhắn.',
+    updates: 'Cập nhật',
+    updatesHint: 'Có bản mới sẽ tự báo, không muốn chờ thì bấm kiểm tra ngay.',
+    checkNow: 'Kiểm tra ngay',
     activeStatus: 'Trạng thái hoạt động',
     activeStatusHint: 'Ai thấy được bạn đang hoạt động.',
     change: 'Đổi…',
@@ -398,6 +431,12 @@
     remove: 'Xoá',
     themeIcon: 'Biểu tượng ứng dụng theo theme',
     themeIconHint: 'Với Zalo, WhatsApp hoặc Teams, biểu tượng là logo của app đó kèm huy hiệu iMessenger.',
+    appIcon: 'Biểu tượng ứng dụng',
+    appIconHint: 'Dùng ảnh .png hoặc .ico của bạn làm biểu tượng iMessenger trên Dock, thanh tác vụ và khay hệ thống. Màn hình chờ sẽ đổi theo từ lần mở app sau.',
+    choose: 'Chọn…',
+    reset: 'Đặt lại',
+    appName: 'Tên ứng dụng',
+    appNameHint: 'Tên hiện trên cửa sổ, khay hệ thống và thông báo. Riêng Dock, menu Start và Finder vẫn giữ tên iMessenger.',
     hideAvatars: 'Ẩn ảnh đại diện',
     hideAvatarsHint: 'Chỉ hiện chữ cái đầu của tên, tiện khi người khác nhìn thấy màn hình.',
     darkMode: 'Chế độ tối',
@@ -408,7 +447,7 @@
   };
   // iMessenger passes its language before the page loads (webview.rs), so the
   // window opens in it; the settings say it again (render).
-  let lang = window.__fmessLang ?? 'en';
+  let lang = window.__imessengerLang ?? 'en';
   const say = (en, vi) => (lang === 'vi' ? vi : en);
   const english = new Map();
   const englishLabels = new Map();
@@ -436,8 +475,11 @@
       shownPrefs = null;
     }
     renderTheme();
+    document.getElementById('reset-icon').hidden = !view.customIcon;
     for (const input of inputs) {
       const value = view[input.dataset.key];
+      // The settings are read again every few seconds; don't undo typing.
+      if (input.type === 'text' && input === document.activeElement) continue;
       if (input.type === 'checkbox') input.checked = Boolean(value);
       else input.value = String(value ?? '');
     }
@@ -448,6 +490,7 @@
     }
     const mac = view.platform === 'macos';
     for (const el of document.querySelectorAll('[data-only="macos"]')) el.hidden = !mac;
+    for (const el of document.querySelectorAll('[data-not="macos"]')) el.hidden = mac;
     for (const el of document.querySelectorAll('[data-tray]')) {
       el.textContent = mac ? say('menu bar', 'thanh menu') : say('tray', 'khay hệ thống');
     }
@@ -556,13 +599,32 @@
     }
   });
   loadThemes();
+  document.getElementById('choose-icon').addEventListener('click', async () => {
+    try {
+      if (await invoke('choose_app_icon')) render(await invoke('get_settings'));
+      errorBox.textContent = '';
+    } catch (err) {
+      showError(err);
+    }
+  });
+  document.getElementById('reset-icon').addEventListener('click', async () => {
+    try {
+      await invoke('reset_app_icon');
+      render(await invoke('get_settings'));
+    } catch (err) {
+      showError(err);
+    }
+  });
 
   async function save() {
     const { launchAtLogin, platform, messenger, lang: _, ...settings } = current;
     for (const input of inputs) {
       const key = input.dataset.key;
       // The language is "en", "vi" or none (Automatic); the other selects are numbers.
-      const value = input.type === 'checkbox' ? input.checked : key === 'language' ? input.value || null : Number(input.value);
+      const value =
+        input.type === 'checkbox' ? input.checked
+        : input.type === 'text' || key === 'language' ? input.value.trim() || null
+        : Number(input.value);
       if (key === 'launchAtLogin') continue;
       settings[key] = value;
     }
@@ -589,6 +651,14 @@
       (err) => { result.textContent = say(`Couldn't send: ${err}`, `Không gửi được: ${err}`); },
     );
   });
+  // Its answer (up to date, a new version to install, or an error) is a
+  // dialog from iMessenger, as from the menu's Check for Updates….
+  document.getElementById('check-updates').addEventListener('click', () => {
+    invoke('check_for_updates').catch(showError);
+  });
+  invoke('plugin:app|version').then((version) => {
+    document.getElementById('version').textContent = `iMessenger ${version}.`;
+  }, () => {});
   invoke('get_settings').then(render, (err) => { errorBox.textContent = String(err); });
   // Messenger's preferences may change while this is
   // open: on the phone, in Messenger's own dialog, or by a change made here.

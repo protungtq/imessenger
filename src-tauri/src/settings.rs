@@ -36,6 +36,9 @@ pub struct Settings {
     pub block_typing: bool,
     /// Show initials in place of people's pictures.
     pub hide_avatars: bool,
+    /// Fields check spelling. It knows only the system's languages: on a
+    /// Windows set up in English nearly every Vietnamese word is underlined.
+    pub spell_check: bool,
     /// Messenger's dark mode as last reported (ENABLED, DISABLED, USE_SYSTEM),
     /// so iMessenger starts in the right colours before the page has loaded.
     pub messenger_dark_mode: Option<String>,
@@ -43,6 +46,10 @@ pub struct Settings {
     pub theme: Option<String>,
     /// The app's icon shows the theme's (see icon.rs).
     pub theme_icon: bool,
+    /// The name on iMessenger's windows, tray and notifications; none is "iMessenger".
+    pub app_name: Option<String>,
+    /// A picture chosen in Settings is the app's icon (see icon.rs).
+    pub custom_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
     pub pane_widths: PaneWidths,
     /// iMessenger's own language, "en" or "vi"; none follows the system (i18n.rs).
@@ -71,12 +78,21 @@ impl Default for Settings {
             mac_calls: true,
             block_typing: false,
             hide_avatars: false,
+            spell_check: true,
             messenger_dark_mode: None,
             theme: None,
             theme_icon: true,
+            app_name: None,
+            custom_icon: false,
             pane_widths: PaneWidths::default(),
             language: None,
         }
+    }
+}
+
+impl Settings {
+    pub fn app_name(&self) -> &str {
+        self.app_name.as_deref().map(str::trim).filter(|name| !name.is_empty()).unwrap_or("iMessenger")
     }
 }
 
@@ -148,14 +164,21 @@ pub fn update_settings<R: Runtime>(
     }
 
     let settings = change(&app, |current| {
-        // Kept by the page, not edited in the Settings window.
-        let kept = (current.messenger_dark_mode.take(), std::mem::take(&mut current.pane_widths));
+        // Kept by the page and the icon commands, not edited in the Settings window.
+        let kept = (
+            current.messenger_dark_mode.take(),
+            std::mem::take(&mut current.pane_widths),
+            current.custom_icon,
+        );
         *current = settings;
-        (current.messenger_dark_mode, current.pane_widths) = kept;
+        (current.messenger_dark_mode, current.pane_widths, current.custom_icon) = kept;
     })?;
 
     if settings.theme != previous.theme || settings.theme_icon != previous.theme_icon {
         icon::apply(&app);
+    }
+    if settings.app_name() != previous.app_name() {
+        apply_app_name(&app, settings.app_name());
     }
     let lang = Lang::from_setting(settings.language.as_deref());
     let language_changed = lang != Lang::from_setting(previous.language.as_deref());
@@ -177,6 +200,7 @@ pub fn update_settings<R: Runtime>(
         }
         if settings.block_typing != previous.block_typing
             || settings.hide_avatars != previous.hide_avatars
+            || settings.spell_check != previous.spell_check
             || settings.theme != previous.theme
             || language_changed
         {
@@ -187,7 +211,7 @@ pub fn update_settings<R: Runtime>(
             // it; the page's settings from when the window opened are older,
             // so this one value goes to the reload through localStorage.
             let _ = window.eval(format!(
-                "try {{ localStorage.setItem('fmess.macCalls', '{}'); }} catch {{}} location.reload();",
+                "try {{ localStorage.setItem('imessenger.macCalls', '{}'); }} catch {{}} location.reload();",
                 if settings.mac_calls { "1" } else { "0" }
             ));
         }
@@ -241,7 +265,7 @@ pub fn set_messenger_pref<R: Runtime>(app: AppHandle<R>, name: String, value: se
     }
     let call = serde_json::to_string(&(name, value)).expect("JSON serializes");
     window
-        .eval(format!("window.__fmessSetMessengerPref?.(...{call});"))
+        .eval(format!("window.__imessengerSetMessengerPref?.(...{call});"))
         .map_err(|err| err.to_string())
 }
 
@@ -252,7 +276,7 @@ pub fn open_messenger_preferences<R: Runtime>(app: AppHandle<R>, section: Option
     crate::show_main_window(&app);
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         let section = serde_json::to_string(&section).expect("JSON serializes");
-        let _ = window.eval(format!("window.__fmessOpenMessengerPreferences?.({section});"));
+        let _ = window.eval(format!("window.__imessengerOpenMessengerPreferences?.({section});"));
     }
 }
 
@@ -288,6 +312,7 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
         "macCalls": settings.mac_calls,
         "blockTyping": settings.block_typing,
         "hideAvatars": settings.hide_avatars,
+        "spellCheck": settings.spell_check,
         "theme": themes::for_page(app, settings.theme.as_deref()),
         "paneWidths": settings.pane_widths,
         // For the notifications the page writes itself.
@@ -298,7 +323,7 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
 
 /// Hands the current settings to the loaded page.
 pub fn page_settings_script<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> String {
-    format!("window.__fmessApplySettings?.({});", page_settings(app, settings))
+    format!("window.__imessengerApplySettings?.({});", page_settings(app, settings))
 }
 
 /// Goes back to Messenger's own look (the theme was removed).
@@ -311,6 +336,21 @@ pub fn clear_theme<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     Ok(())
 }
 
+/// Called by the icon commands (icon.rs), which keep the picture itself.
+pub fn set_custom_icon<R: Runtime>(app: &AppHandle<R>, on: bool) -> Result<(), String> {
+    change(app, |settings| settings.custom_icon = on).map(drop)
+}
+
+/// Renames iMessenger's open windows and tray icon; the Dock, the menu bar and the
+/// Start menu keep the name it was installed with.
+fn apply_app_name<R: Runtime>(app: &AppHandle<R>, name: &str) {
+    for (label, window) in app.webview_windows() {
+        if label != SETTINGS_WINDOW {
+            let _ = window.set_title(name);
+        }
+    }
+    menu::set_tooltip(app, name);
+}
 
 /// Changes the settings and saves them. The lock is held from reading to
 /// saving, so changes made at the same time (by the page and the Settings
@@ -369,7 +409,7 @@ mod tests {
 
     #[test]
     fn writes_settings_whole() {
-        let dir = std::env::temp_dir().join(format!("fmess-settings-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("imessenger-settings-test-{}", std::process::id()));
         let path = dir.join("settings.json");
         write_whole(&path, b"{\"zoom\": 1.0}").unwrap();
         write_whole(&path, b"{\"zoom\": 1.25}").unwrap();

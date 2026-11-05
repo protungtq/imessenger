@@ -1,4 +1,4 @@
-/* fMess theme
+/* iMessenger theme
    name: Teams
    preview: #ebebeb #ebebeb #ffffff #e8ebfa #f5f5f5
 */
@@ -61,7 +61,7 @@
   --tm-hover-pill: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='32' height='32' rx='4' fill='white' fill-opacity='.7'/%3E%3C/svg%3E");
   --tm-quote-bar: #c7c7c7;
 }
-html[data-fmess-dark] {
+html[data-imessenger-dark] {
   --tm-window: #0a0a0a;
   --tm-card: #292929;
   --tm-fg1: #ffffff;
@@ -186,15 +186,15 @@ html :is(div, span, a, h1, h2, h3, h4, input, textarea, button, label, p) {
 }
 
 /* The window: Teams' grey behind everything. */
-html[data-fmess-chats],
-html[data-fmess-chats] body,
-html[data-fmess-chats] :has(> [data-fmess-list]) {
+html[data-imessenger-chats],
+html[data-imessenger-chats] body,
+html[data-imessenger-chats] :has(> [data-imessenger-list]) {
   background: var(--tm-window) !important;
 }
 
 /* Teams' title bar: a 48px band over the whole window (the window buttons
    stay where the system puts them), Messenger's search field centred in it,
-   "…" (fMess's Settings) and your picture at the right. Messenger's page
+   "…" (iMessenger's Settings) and your picture at the right. Messenger's page
    starts under the band (--header-height). Outside the chats only the strip
    under the window buttons is coloured (0 where the system draws the title
    bar). */
@@ -203,8 +203,8 @@ html[data-fmess-chats] :has(> [data-fmess-list]) {
   --tm-rail: 68px;
   --tm-search-w: min(468px, calc(100vw - 254px));
 }
-html[data-fmess-chats],
-html[data-fmess-chats] * {
+html[data-imessenger-chats],
+html[data-imessenger-chats] * {
   --header-height: var(--tm-band) !important;
 }
 html::before {
@@ -214,24 +214,24 @@ html::before {
   top: 0;
   left: 0;
   right: 0;
-  height: var(--fmess-title-bar, 0px);
+  height: var(--imessenger-title-bar, 0px);
   background: var(--tm-window);
   pointer-events: none;
 }
 /* In the chats the band sits at the bottom of the page's stack, so the
    search field (inside the list's own stacking context) shows over it. */
-html[data-fmess-chats]::before {
+html[data-imessenger-chats]::before {
   z-index: 0;
   height: var(--tm-band);
   background:
-    var(--tm-hover-pill) var(--fmess-window-hover-left, -999px) var(--fmess-window-hover-top, -999px) / 32px 32px no-repeat,
+    var(--tm-hover-pill) var(--imessenger-window-hover-left, -999px) var(--imessenger-window-hover-top, -999px) / 32px 32px no-repeat,
     var(--tm-window);
 }
-html[data-fmess-chats]:not([data-fmess-media]) {
-  --fmess-window-buttons: settings -53 8 32, account -12 8 32, sidebar 108 8 32;
+html[data-imessenger-chats]:not([data-imessenger-media]) {
+  --imessenger-window-buttons: settings -53 8 32, account -12 8 32, sidebar 108 8 32;
 }
 /* "…" and your picture with Teams' "available" dot, in one masked layer. */
-html[data-fmess-chats] body::before {
+html[data-imessenger-chats] body::before {
   content: "";
   position: fixed;
   z-index: 1;
@@ -243,8 +243,8 @@ html[data-fmess-chats] body::before {
   background:
     var(--tm-presence) right 14px top 28px / 10px 10px no-repeat,
     radial-gradient(closest-side, var(--tm-card) 92%, transparent 100%) right 13px top 27px / 12px 12px no-repeat,
-    var(--fmess-avatar, linear-gradient(var(--tm-bg6), var(--tm-bg6))) right 14px top 10px / 28px 28px no-repeat,
-    linear-gradient(var(--tm-brand-icon), var(--tm-brand-icon)) calc(var(--fmess-window-hover-left, -999px) + 6px) calc(var(--fmess-window-hover-top, -999px) + 6px) / 20px 20px no-repeat,
+    var(--imessenger-avatar, linear-gradient(var(--tm-bg6), var(--tm-bg6))) right 14px top 10px / 28px 28px no-repeat,
+    linear-gradient(var(--tm-brand-icon), var(--tm-brand-icon)) calc(var(--imessenger-window-hover-left, -999px) + 6px) calc(var(--imessenger-window-hover-top, -999px) + 6px) / 20px 20px no-repeat,
     var(--tm-fg3);
   -webkit-mask:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") right 59px top 14px / 20px 20px no-repeat,
@@ -252,8 +252,8 @@ html[data-fmess-chats] body::before {
     radial-gradient(circle 6px at calc(100% - 19px) 33px, #000 96%, transparent 100%);
 }
 /* Teams' sidebar button in the band, right of the window buttons: it folds
-   the app bar away and back (fMess's "sidebar" window button). */
-html[data-fmess-chats] body::after {
+   the app bar away and back (iMessenger's "sidebar" window button). */
+html[data-imessenger-chats] body::after {
   content: "";
   position: fixed;
   z-index: 1;
@@ -263,16 +263,16 @@ html[data-fmess-chats] body::after {
   height: var(--tm-band);
   pointer-events: none;
   background:
-    linear-gradient(var(--tm-brand-icon), var(--tm-brand-icon)) calc(var(--fmess-window-hover-left, -999px) + 6px) calc(var(--fmess-window-hover-top, -999px) + 6px) / 20px 20px no-repeat,
+    linear-gradient(var(--tm-brand-icon), var(--tm-brand-icon)) calc(var(--imessenger-window-hover-left, -999px) + 6px) calc(var(--imessenger-window-hover-top, -999px) + 6px) / 20px 20px no-repeat,
     var(--tm-fg3);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 6a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6Zm7 9h6a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H9v11ZM6.59 7a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09ZM7 12.5a.5.5 0 0 0-.5-.5H4.41a.5.5 0 0 0 .09 1h2.09a.5.5 0 0 0 .41-.5Z'/%3E%3C/svg%3E") 114px 14px / 20px 20px no-repeat;
 }
-html[data-fmess-chats][data-fmess-sidebar-collapsed] body::after {
+html[data-imessenger-chats][data-imessenger-sidebar-collapsed] body::after {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.59 7a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09Zm0 3a.5.5 0 0 0-.09-1H4.41a.5.5 0 0 0 .09 1h2.09ZM5 3a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H5Zm10 12H9V4h6a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2ZM5 4h3v11H5a2 2 0 0 1-2-2V6c0-1.1.9-2 2-2Z'/%3E%3C/svg%3E");
 }
-/* The strip fMess drags the window by (macOS) covers the whole band, with
+/* The strip iMessenger drags the window by (macOS) covers the whole band, with
    a hole for the search field; "…" and the picture take their own clicks. */
-html[data-fmess-chats]:not([data-fmess-media]) [data-tauri-drag-region] {
+html[data-imessenger-chats]:not([data-imessenger-media]) [data-tauri-drag-region] {
   height: var(--tm-band) !important;
   clip-path: polygon(evenodd,
     0 0, 100% 0, 100% 100%, 0 100%, 0 0,
@@ -283,7 +283,7 @@ html[data-fmess-chats]:not([data-fmess-media]) [data-tauri-drag-region] {
 
 /* The app bar down the left (68px), under the band, with Teams' apps as
    pictures only: Chat filled with Teams' gradient, the others outlined. */
-html[data-fmess-chats] [data-fmess-list] {
+html[data-imessenger-chats] [data-imessenger-list] {
   position: relative !important;
   box-sizing: border-box !important;
   padding-left: 68px !important;
@@ -292,8 +292,8 @@ html[data-fmess-chats] [data-fmess-list] {
   --messenger-card-background: transparent !important;
   --surface-background: transparent !important;
 }
-html[data-fmess-chats] [data-fmess-list],
-html[data-fmess-chats] [data-fmess-list] > div:not(.fmess-pane-edge) {
+html[data-imessenger-chats] [data-imessenger-list],
+html[data-imessenger-chats] [data-imessenger-list] > div:not(.imessenger-pane-edge) {
   border-right: 0 !important;
   box-shadow: none !important;
 }
@@ -303,23 +303,23 @@ html[data-fmess-chats] [data-fmess-list] > div:not(.fmess-pane-edge) {
    Teams' order: Chat, Meet, People, Copilot (its own colour picture),
    Communities, Calendar, Activity. Under the pointer the slot turns white
    (#242424 in dark), the icon filled in Teams' gradient, and Teams' white
-   tooltip names it. They are --fmess-buttons that do nothing; fMess marks
-   the lit one (data-fmess-hover). Chat, the open app, keeps its slot clear. */
-html[data-fmess-chats] [data-fmess-list] {
-  --fmess-buttons: chat 12 46 44, meet 12 90 44, people 12 134 44, copilot 12 178 44, communities 12 222 44, calendar 12 266 44, activity 12 310 44;
+   tooltip names it. They are --imessenger-buttons that do nothing; iMessenger marks
+   the lit one (data-imessenger-hover). Chat, the open app, keeps its slot clear. */
+html[data-imessenger-chats] [data-imessenger-list] {
+  --imessenger-buttons: chat 12 46 44, meet 12 90 44, people 12 134 44, copilot 12 178 44, communities 12 222 44, calendar 12 266 44, activity 12 310 44;
   background:
-    linear-gradient(var(--tm-selected), var(--tm-selected)) 0 var(--fmess-hover-top, -300px) / 68px 44px no-repeat,
+    linear-gradient(var(--tm-selected), var(--tm-selected)) 0 var(--imessenger-hover-top, -300px) / 68px 44px no-repeat,
     var(--tm-window) !important;
 }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="chat"] {
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="chat"] {
   background: var(--tm-window) !important;
 }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover]::before {
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover]::before {
   content: var(--tm-app-name, "");
   position: absolute;
   z-index: 6;
   left: 72px;
-  top: calc(var(--fmess-hover-top, -300px) + 8px);
+  top: calc(var(--imessenger-hover-top, -300px) + 8px);
   box-sizing: border-box;
   height: 28px;
   padding: 5px 12px 7px;
@@ -331,17 +331,17 @@ html[data-fmess-chats] [data-fmess-list][data-fmess-hover]::before {
   filter: drop-shadow(0 0 2px var(--tm-ambient)) drop-shadow(0 4px 8px var(--tm-key));
   pointer-events: none;
 }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="chat"] { --tm-app-name: "Chat"; }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="meet"] { --tm-app-name: "Meet"; }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="people"] { --tm-app-name: "People"; }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="copilot"] { --tm-app-name: "Copilot"; }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="communities"] { --tm-app-name: "Communities"; }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="calendar"] { --tm-app-name: "Calendar"; }
-html[data-fmess-chats] [data-fmess-list][data-fmess-hover="activity"] { --tm-app-name: "Activity"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="chat"] { --tm-app-name: "Chat"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="meet"] { --tm-app-name: "Meet"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="people"] { --tm-app-name: "People"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="copilot"] { --tm-app-name: "Copilot"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="communities"] { --tm-app-name: "Communities"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="calendar"] { --tm-app-name: "Calendar"; }
+html[data-imessenger-chats] [data-imessenger-list][data-imessenger-hover="activity"] { --tm-app-name: "Activity"; }
 /* One masked layer: the logo and Copilot (their own pictures), the outlined
    icons, and the filled ones (a strip, one per slot) clipped to the content
    box, which the padding makes the slot under the pointer (none when none). */
-html[data-fmess-chats] [data-fmess-list]::after {
+html[data-imessenger-chats] [data-imessenger-list]::after {
   content: "";
   position: absolute;
   z-index: 4;
@@ -350,13 +350,13 @@ html[data-fmess-chats] [data-fmess-list]::after {
   width: 68px;
   height: 360px;
   box-sizing: border-box;
-  padding: max(0px, calc(var(--fmess-hover-top, -300px) + 10px)) 22px max(0px, calc(326px - var(--fmess-hover-top, -300px)));
+  padding: max(0px, calc(var(--imessenger-hover-top, -300px) + 10px)) 22px max(0px, calc(326px - var(--imessenger-hover-top, -300px)));
   pointer-events: none;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='2 2 20 20' fill='none'%3E%3Cpath d='M21.0344 10.0012H16.8734L15.7124 10.9402V15.5972C15.7124 17.3262 17.1134 18.7282 18.8424 18.7282C20.5724 18.7282 21.9734 17.3262 21.9734 15.5972V10.9402C21.9734 10.4222 21.5534 10.0012 21.0344 10.0012Z' fill='%235059C9'/%3E%3Cpath d='M22 7C22 8.104 21.105 9 20 9C18.895 9 18 8.104 18 7C18 5.896 18.895 5 20 5C21.105 5 22 5.896 22 7Z' fill='%235059C9'/%3E%3Cpath d='M9.89214 10.0046H17.0961C17.5921 10.0046 17.9941 10.4066 17.9941 10.9026V16.5946C17.9941 19.0306 16.0201 21.0046 13.5841 21.0046H13.4041C10.9681 21.0046 8.99414 19.0306 8.99414 16.5946V10.9026C8.99414 10.4066 9.39614 10.0046 9.89214 10.0046Z' fill='%237B83EB'/%3E%3Cpath d='M16.9065 5.99999C16.9065 7.60499 15.6055 8.90699 13.9995 8.90699C12.3945 8.90699 11.0935 7.60499 11.0935 5.99999C11.0935 4.39499 12.3945 3.09299 13.9995 3.09299C15.6055 3.09299 16.9065 4.39499 16.9065 5.99999Z' fill='%237B83EB'/%3E%3Cpath opacity='0.5' fill-rule='evenodd' clip-rule='evenodd' d='M15.0001 8.6814V8.0004C15.0001 7.4504 14.5281 7.0004 13.9511 7.0004H11.2711C11.6881 8.0944 12.7391 8.8754 13.9801 8.8754C14.3401 8.8754 14.6821 8.8014 15.0001 8.6814ZM8.99414 10.9024C8.99414 10.4064 9.39614 10.0044 9.89214 10.0044H15.0001V17.8394C15.0001 18.3894 14.3821 19.0004 13.7451 19.0004H9.71514C9.26214 18.3074 8.99414 17.4834 8.99414 16.5944V10.9024Z' fill='black'/%3E%3Cpath d='M3 18C2.45 18 2 17.55 2 17V7C2 6.45 2.45 6 3 6H13C13.55 6 14 6.45 14 7V17C14 17.55 13.55 18 13 18H3Z' fill='%234B53BC'/%3E%3Cpath d='M11.0001 10H8.83511V15.82H7.41211V10H5.23511V8.57001H11.0001V10Z' fill='white'/%3E%3C/svg%3E") 24px 12px / 20px 20px no-repeat,
     url("data:image/png;base64,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") 22px 188px / 24px 24px no-repeat,
     var(--tm-gradient) 22px 56px / 24px 24px no-repeat,
-    var(--tm-gradient) 22px calc(var(--fmess-hover-top, -300px) + 10px) / 24px 24px no-repeat,
+    var(--tm-gradient) 22px calc(var(--imessenger-hover-top, -300px) + 10px) / 24px 24px no-repeat,
     var(--tm-rail-icon);
   -webkit-mask:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='2 2 20 20' fill='none'%3E%3Cpath d='M21.0344 10.0012H16.8734L15.7124 10.9402V15.5972C15.7124 17.3262 17.1134 18.7282 18.8424 18.7282C20.5724 18.7282 21.9734 17.3262 21.9734 15.5972V10.9402C21.9734 10.4222 21.5534 10.0012 21.0344 10.0012Z' fill='%235059C9'/%3E%3Cpath d='M22 7C22 8.104 21.105 9 20 9C18.895 9 18 8.104 18 7C18 5.896 18.895 5 20 5C21.105 5 22 5.896 22 7Z' fill='%235059C9'/%3E%3Cpath d='M9.89214 10.0046H17.0961C17.5921 10.0046 17.9941 10.4066 17.9941 10.9026V16.5946C17.9941 19.0306 16.0201 21.0046 13.5841 21.0046H13.4041C10.9681 21.0046 8.99414 19.0306 8.99414 16.5946V10.9026C8.99414 10.4066 9.39614 10.0046 9.89214 10.0046Z' fill='%237B83EB'/%3E%3Cpath d='M16.9065 5.99999C16.9065 7.60499 15.6055 8.90699 13.9995 8.90699C12.3945 8.90699 11.0935 7.60499 11.0935 5.99999C11.0935 4.39499 12.3945 3.09299 13.9995 3.09299C15.6055 3.09299 16.9065 4.39499 16.9065 5.99999Z' fill='%237B83EB'/%3E%3Cpath opacity='0.5' fill-rule='evenodd' clip-rule='evenodd' d='M15.0001 8.6814V8.0004C15.0001 7.4504 14.5281 7.0004 13.9511 7.0004H11.2711C11.6881 8.0944 12.7391 8.8754 13.9801 8.8754C14.3401 8.8754 14.6821 8.8014 15.0001 8.6814ZM8.99414 10.9024C8.99414 10.4064 9.39614 10.0044 9.89214 10.0044H15.0001V17.8394C15.0001 18.3894 14.3821 19.0004 13.7451 19.0004H9.71514C9.26214 18.3074 8.99414 17.4834 8.99414 16.5944V10.9024Z' fill='black'/%3E%3Cpath d='M3 18C2.45 18 2 17.55 2 17V7C2 6.45 2.45 6 3 6H13C13.55 6 14 6.45 14 7V17C14 17.55 13.55 18 13 18H3Z' fill='%234B53BC'/%3E%3Cpath d='M11.0001 10H8.83511V15.82H7.41211V10H5.23511V8.57001H11.0001V10Z' fill='white'/%3E%3C/svg%3E") 24px 12px / 20px 20px no-repeat,
@@ -374,23 +374,23 @@ html[data-fmess-chats] [data-fmess-list]::after {
 /* Folded (Teams' sidebar button in the band): the app bar goes, as in
    Teams: no rail, logo, icons, tooltips or buttons there; the chat list
    starts at the window's edge, and the search box centres on the window. */
-html[data-fmess-chats][data-fmess-sidebar-collapsed] {
+html[data-imessenger-chats][data-imessenger-sidebar-collapsed] {
   --tm-rail: 0px;
 }
-html[data-fmess-chats][data-fmess-sidebar-collapsed] [data-fmess-list] {
+html[data-imessenger-chats][data-imessenger-sidebar-collapsed] [data-imessenger-list] {
   padding-left: 0 !important;
   min-width: 280px !important;
   background: var(--tm-window) !important;
-  --fmess-buttons: none;
+  --imessenger-buttons: none;
 }
-html[data-fmess-chats][data-fmess-sidebar-collapsed] [data-fmess-list]::before,
-html[data-fmess-chats][data-fmess-sidebar-collapsed] [data-fmess-list]::after {
+html[data-imessenger-chats][data-imessenger-sidebar-collapsed] [data-imessenger-list]::before,
+html[data-imessenger-chats][data-imessenger-sidebar-collapsed] [data-imessenger-list]::after {
   display: none !important;
 }
 /* Unread chats: Teams' count on the Chat app. UNMEASURED: no badge was on
    screen in Teams; Fluent's CounterBadge in danger red. */
-html[data-fmess-chats][data-fmess-unread]::after {
-  content: attr(data-fmess-unread);
+html[data-imessenger-chats][data-imessenger-unread]::after {
+  content: attr(data-imessenger-unread);
   position: fixed;
   z-index: 2147483000;
   left: 36px;
@@ -406,29 +406,29 @@ html[data-fmess-chats][data-fmess-unread]::after {
   text-align: center;
   pointer-events: none;
 }
-html[data-fmess-chats][data-fmess-sidebar-collapsed][data-fmess-unread]::after {
+html[data-imessenger-chats][data-imessenger-sidebar-collapsed][data-imessenger-unread]::after {
   display: none !important;
 }
 /* No band, bar or badge over the photo viewer, which has a title bar of
    its own; and no grey window showing at its edge. */
-html[data-fmess-media]::before,
-html[data-fmess-media]::after,
-html[data-fmess-media] body::before,
-html[data-fmess-media] body::after {
+html[data-imessenger-media]::before,
+html[data-imessenger-media]::after,
+html[data-imessenger-media] body::before,
+html[data-imessenger-media] body::after {
   display: none !important;
 }
-html[data-fmess-chats][data-fmess-media],
-html[data-fmess-chats][data-fmess-media] body {
+html[data-imessenger-chats][data-imessenger-media],
+html[data-imessenger-chats][data-imessenger-media] body {
   background: #000000 !important;
 }
 
 /* Chat list, as Teams' cluster: the "Chat" title row with its icons, a
    line, the filter pills, a line, then the chats. */
-html[data-fmess-chats] #fmess-account {
+html[data-imessenger-chats] #imessenger-account {
   display: none !important;
 }
 /* The title row: 60px and a line (Teams' 61), the title 32px in. */
-html[data-fmess-chats] [data-fmess-list] div:has(> div > div > #fmess-account) {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> div > div > #imessenger-account) {
   display: flex !important;
   align-items: center !important;
   box-sizing: content-box !important;
@@ -437,12 +437,12 @@ html[data-fmess-chats] [data-fmess-list] div:has(> div > div > #fmess-account) {
   padding: 0 16px 0 32px !important;
   border-bottom: 1px solid var(--tm-stroke-subtle) !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> div > div > #fmess-account) > div,
-html[data-fmess-chats] [data-fmess-list] div:has(> #fmess-account) {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> div > div > #imessenger-account) > div,
+html[data-imessenger-chats] [data-imessenger-list] div:has(> #imessenger-account) {
   flex: 1 1 auto !important;
   padding: 0 !important;
 }
-html[data-fmess-chats] [data-fmess-list] h1 {
+html[data-imessenger-chats] [data-imessenger-list] h1 {
   font-size: 18px !important;
   font-weight: 700 !important;
   line-height: 22px !important;
@@ -450,27 +450,27 @@ html[data-fmess-chats] [data-fmess-list] h1 {
 }
 /* Teams says "Chat"; written only over an English Facebook, Messenger's
    own (translated) title otherwise. */
-html[data-fmess-chats][lang^="en"] [data-fmess-list] h1 {
+html[data-imessenger-chats][lang^="en"] [data-imessenger-list] h1 {
   font-size: 0 !important;
 }
-html[data-fmess-chats][lang^="en"] [data-fmess-list] h1::after {
+html[data-imessenger-chats][lang^="en"] [data-imessenger-list] h1::after {
   content: "Chat";
   font: 700 18px/22px -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   color: var(--tm-fg1);
 }
 /* Its icons: 32px buttons side by side, 16px from the edge. */
-html[data-fmess-chats] [data-fmess-list] div:has(> div > span > [data-fmess-ui="list-menu"]) {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> div > span > [data-imessenger-ui="list-menu"]) {
   gap: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> span > :is([data-fmess-ui="list-menu"], a[href="/messages/new/"])) {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> span > :is([data-imessenger-ui="list-menu"], a[href="/messages/new/"])) {
   width: 32px !important;
   height: 32px !important;
   margin: 0 !important;
   padding: 0 !important;
 }
-html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) {
+html[data-imessenger-chats] [data-imessenger-list] :is([data-imessenger-ui="list-menu"], a[href="/messages/new/"]) {
   width: 32px !important;
   height: 32px !important;
   border-radius: 4px !important;
@@ -478,42 +478,42 @@ html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href
   --secondary-button-background: transparent !important;
   --hover-overlay: transparent !important;
 }
-html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]):active {
+html[data-imessenger-chats] [data-imessenger-list] :is([data-imessenger-ui="list-menu"], a[href="/messages/new/"]):active {
   background: var(--tm-bg1-pressed) !important;
 }
-html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) svg {
+html[data-imessenger-chats] [data-imessenger-list] :is([data-imessenger-ui="list-menu"], a[href="/messages/new/"]) svg {
   width: 20px !important;
   height: 20px !important;
   background: var(--tm-fg2);
 }
-html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]) svg * {
+html[data-imessenger-chats] [data-imessenger-list] :is([data-imessenger-ui="list-menu"], a[href="/messages/new/"]) svg * {
   visibility: hidden;
 }
-html[data-fmess-chats] [data-fmess-list] :is([data-fmess-ui="list-menu"], a[href="/messages/new/"]):hover svg {
+html[data-imessenger-chats] [data-imessenger-list] :is([data-imessenger-ui="list-menu"], a[href="/messages/new/"]):hover svg {
   background: var(--tm-fg1);
 }
-html[data-fmess-chats] [data-fmess-list] [data-fmess-ui="list-menu"] svg {
+html[data-imessenger-chats] [data-imessenger-list] [data-imessenger-ui="list-menu"] svg {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [data-fmess-list] [data-fmess-ui="list-menu"]:hover svg {
+html[data-imessenger-chats] [data-imessenger-list] [data-imessenger-ui="list-menu"]:hover svg {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.75 10a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0Zm5 0a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0ZM15 11.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z'/%3E%3C/svg%3E");
 }
-html[data-fmess-chats] [data-fmess-list] a[href="/messages/new/"] svg {
+html[data-imessenger-chats] [data-imessenger-list] a[href="/messages/new/"] svg {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17.85 2.85a.5.5 0 0 0-.7-.7l-8 8L9 11l.85-.15 8-8ZM5.5 3A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-6a.5.5 0 0 0-1 0v6c0 .83-.67 1.5-1.5 1.5h-9A1.5 1.5 0 0 1 4 14.5v-9C4 4.67 4.67 4 5.5 4h6a.5.5 0 0 0 0-1h-6Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [data-fmess-list] a[href="/messages/new/"]:hover svg {
+html[data-imessenger-chats] [data-imessenger-list] a[href="/messages/new/"]:hover svg {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M17.78 3.28a.75.75 0 1 0-1.06-1.06l-7.5 7.5L9 11l1.28-.22 7.5-7.5ZM5.75 3A2.75 2.75 0 0 0 3 5.75v8.5A2.75 2.75 0 0 0 5.75 17h8.5A2.75 2.75 0 0 0 17 14.25v-5.5a.75.75 0 0 0-1.5 0v5.5c0 .69-.56 1.25-1.25 1.25h-8.5c-.69 0-1.25-.56-1.25-1.25v-8.5c0-.69.56-1.25 1.25-1.25h5.5a.75.75 0 0 0 0-1.5h-5.5Z'/%3E%3C/svg%3E");
 }
 
-/* Search: Teams' box in the band is fMess's own (#fmess-search-box, asked
-   for with --fmess-search-box): it carries Messenger's placeholder and
+/* Search: Teams' box in the band is iMessenger's own (#imessenger-search-box, asked
+   for with --imessenger-search-box): it carries Messenger's placeholder and
    focuses Messenger's field, as ⌘K does. That field stays in the list,
    folded away until it is used; while searching it shows at the top of the
    list, with the results under it. */
-html[data-fmess-chats]:not([data-fmess-media]) {
-  --fmess-search-box: 1;
+html[data-imessenger-chats]:not([data-imessenger-media]) {
+  --imessenger-search-box: 1;
 }
-#fmess-search-box {
+#imessenger-search-box {
   position: fixed;
   z-index: 2147483000;
   top: 8px;
@@ -534,14 +534,14 @@ html[data-fmess-chats]:not([data-fmess-media]) {
   cursor: text;
   -webkit-user-select: none;
 }
-#fmess-search-box:hover {
+#imessenger-search-box:hover {
   background: var(--tm-card);
 }
-#fmess-search-box:focus-visible {
+#imessenger-search-box:focus-visible {
   outline: 2px solid var(--tm-brand);
   outline-offset: -2px;
 }
-#fmess-search-box::before {
+#imessenger-search-box::before {
   content: "";
   position: absolute;
   left: 20px;
@@ -552,31 +552,31 @@ html[data-fmess-chats]:not([data-fmess-media]) {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8.5 3a5.5 5.5 0 0 1 4.23 9.02l4.12 4.13a.5.5 0 0 1-.63.76l-.07-.06-4.13-4.12A5.5 5.5 0 1 1 8.5 3Zm0 1a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
 /* Teams' word for it over an English Facebook ("Search Messenger" there). */
-html[lang^="en"] #fmess-search-box {
+html[lang^="en"] #imessenger-search-box {
   font-size: 0;
 }
-html[lang^="en"] #fmess-search-box::after {
+html[lang^="en"] #imessenger-search-box::after {
   content: "Search";
   font-size: 14px;
 }
-html[data-fmess-media] #fmess-search-box {
+html[data-imessenger-media] #imessenger-search-box {
   display: none;
 }
 /* Messenger's field (with its back button while searching) takes no room in
    the list and can't be seen, but can take the focus; with it, it covers the
    "Chat" title's row, and the results show under it. */
-html[data-fmess-chats] [data-fmess-list] > div > div > div:has(input[type="search"]) {
+html[data-imessenger-chats] [data-imessenger-list] > div > div > div:has(input[type="search"]) {
   /* Over the title's row, which comes before it. */
   z-index: 5 !important;
   height: 0 !important;
   min-height: 0 !important;
   padding: 0 !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):not(:focus-within) {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> label input[type="search"]):not(:focus-within) {
   opacity: 0 !important;
   pointer-events: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):focus-within {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> label input[type="search"]):focus-within {
   position: absolute !important;
   z-index: 3 !important;
   left: 0 !important;
@@ -590,15 +590,15 @@ html[data-fmess-chats] [data-fmess-list] div:has(> label input[type="search"]):f
   box-sizing: border-box !important;
   background: var(--tm-window) !important;
 }
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]):is(:hover, :focus-within) {
+html[data-imessenger-chats] [data-imessenger-list] label:has(input[type="search"]):is(:hover, :focus-within) {
   background: var(--tm-card) !important;
 }
 /* Focused, Teams' box only turns white: no ring. */
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]),
-html[data-fmess-chats] [data-fmess-list] label:has(input[type="search"]) * {
+html[data-imessenger-chats] [data-imessenger-list] label:has(input[type="search"]),
+html[data-imessenger-chats] [data-imessenger-list] label:has(input[type="search"]) * {
   box-shadow: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] label > span:has(> svg) {
+html[data-imessenger-chats] [data-imessenger-list] label > span:has(> svg) {
   flex: none !important;
   justify-content: center !important;
   width: 51px !important;
@@ -606,29 +606,29 @@ html[data-fmess-chats] [data-fmess-list] label > span:has(> svg) {
   padding: 0 2px 0 20px !important;
   box-sizing: border-box !important;
 }
-html[data-fmess-chats] [data-fmess-list] label > span > svg {
+html[data-imessenger-chats] [data-imessenger-list] label > span > svg {
   width: 18px !important;
   height: 20px !important;
   background: var(--tm-fg2);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M8.5 3a5.5 5.5 0 0 1 4.23 9.02l4.12 4.13a.5.5 0 0 1-.63.76l-.07-.06-4.13-4.12A5.5 5.5 0 1 1 8.5 3Zm0 1a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [data-fmess-list] label > span > svg * {
+html[data-imessenger-chats] [data-imessenger-list] label > span > svg * {
   visibility: hidden;
 }
-html[data-fmess-chats] [data-fmess-list] input[type="search"] {
+html[data-imessenger-chats] [data-imessenger-list] input[type="search"] {
   height: 32px !important;
   padding: 0 2px 0 9px !important;
   font-size: 14px !important;
   color: var(--tm-fg1) !important;
 }
-html[data-fmess-chats] [data-fmess-list] input[type="search"]::placeholder {
+html[data-imessenger-chats] [data-imessenger-list] input[type="search"]::placeholder {
   color: var(--tm-fg2) !important;
 }
 /* Teams' word for it over an English Facebook ("Search Messenger" there). */
-html[data-fmess-chats][lang^="en"] [data-fmess-list] input[type="search"]::placeholder {
+html[data-imessenger-chats][lang^="en"] [data-imessenger-list] input[type="search"]::placeholder {
   color: transparent !important;
 }
-html[data-fmess-chats][lang^="en"] [data-fmess-list] label:has(input[type="search"]:placeholder-shown)::after {
+html[data-imessenger-chats][lang^="en"] [data-imessenger-list] label:has(input[type="search"]:placeholder-shown)::after {
   content: "Search";
   position: absolute;
   left: 60px;
@@ -639,7 +639,7 @@ html[data-fmess-chats][lang^="en"] [data-fmess-list] label:has(input[type="searc
 }
 
 /* Filters: Teams' pills, one line. */
-html[data-fmess-chats] [data-fmess-list] [role="tablist"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="tablist"] {
   display: flex !important;
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
@@ -652,27 +652,27 @@ html[data-fmess-chats] [data-fmess-list] [role="tablist"] {
 /* The pills' row: 8px above and below, a line (Teams' 41px), the pills
    32px in, under the title; the chats start 6px under the line, as Teams'
    first section does. */
-html[data-fmess-chats] [data-fmess-list] div:has(> div > div > [role="tablist"]) {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> div > div > [role="tablist"]) {
   margin: 0 0 6px !important;
   padding: 8px 0 8px 32px !important;
   border-bottom: 1px solid var(--tm-stroke-subtle) !important;
 }
-html[data-fmess-chats] [data-fmess-list] div:has(> div > [role="tablist"]),
-html[data-fmess-chats] [data-fmess-list] div:has(> [role="tablist"]),
-html[data-fmess-chats] [data-fmess-list] [role="tablist"] {
+html[data-imessenger-chats] [data-imessenger-list] div:has(> div > [role="tablist"]),
+html[data-imessenger-chats] [data-imessenger-list] div:has(> [role="tablist"]),
+html[data-imessenger-chats] [data-imessenger-list] [role="tablist"] {
   height: 24px !important;
   min-height: 0 !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tablist"]::-webkit-scrollbar {
+html[data-imessenger-chats] [data-imessenger-list] [role="tablist"]::-webkit-scrollbar {
   display: none;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tablist"] > * {
+html[data-imessenger-chats] [data-imessenger-list] [role="tablist"] > * {
   flex: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tablist"] > :not(:has([role="tab"])) {
+html[data-imessenger-chats] [data-imessenger-list] [role="tablist"] > :not(:has([role="tab"])) {
   display: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tab"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="tab"] {
   height: 24px !important;
   margin: 0 !important;
   padding: 0 8px !important;
@@ -685,35 +685,35 @@ html[data-fmess-chats] [data-fmess-list] [role="tab"] {
   --secondary-text: var(--tm-fg2) !important;
   --hover-overlay: transparent !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tab"]:hover {
+html[data-imessenger-chats] [data-imessenger-list] [role="tab"]:hover {
   border-color: var(--tm-stroke1-hover) !important;
   background: var(--tm-bg3-hover) !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tab"][aria-selected="true"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="tab"][aria-selected="true"] {
   border-color: var(--tm-pill-on-line) !important;
   background: var(--tm-pill-on) !important;
   --primary-deemphasized-button-text: var(--tm-on-brand) !important;
   --primary-text: var(--tm-on-brand) !important;
   --secondary-text: var(--tm-on-brand) !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tab"][aria-selected="true"]:hover {
+html[data-imessenger-chats] [data-imessenger-list] [role="tab"][aria-selected="true"]:hover {
   border-color: var(--tm-pill-on-hover) !important;
   background: var(--tm-pill-on-hover) !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="tab"] span {
+html[data-imessenger-chats] [data-imessenger-list] [role="tab"] span {
   font-size: 12px !important;
   font-weight: 400 !important;
   line-height: 16px !important;
 }
 
 /* Rows: 52px, 36px pictures, square-ish corners; the open chat white. */
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"] {
   border-radius: 4px !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] {
   padding-inline: 16px !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"] > div {
   min-height: 52px !important;
   margin: 0 !important;
   --x-paddingBlock: 8px !important;
@@ -721,37 +721,37 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div {
   padding: 8px 12px 8px 16px !important;
 }
 /* The picture, 56px in Messenger, at Teams' 36 (with its dots and badges). */
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div > div > div:first-child {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"] > div > div > div:first-child {
   flex: none !important;
   width: 36px !important;
   height: 36px !important;
   margin-right: 12px !important;
   padding: 0 !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div > div > div:first-child > div {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"] > div > div > div:first-child > div {
   zoom: 0.642857;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] > div > div > div:nth-child(2) > div {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"] > div > div > div:nth-child(2) > div {
   padding: 0 !important;
 }
 /* Names 14px, the last message 12px; a read chat all grey, an unread one
    dark and bold, the open one dark (Teams). Read rows are the ones without
    Messenger's unread dot (a button); their names lose Messenger's weight. */
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"] {
   --tm-row: 1;
   /* Messenger's own hover layer covered part of the row only, in another
      shade: the row's fill is the theme's alone. */
   --hover-overlay: transparent !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:not(:has([role="button"])) {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"]:not(:has([role="button"])) {
   --primary-text: var(--tm-fg3) !important;
   --tm-read: 1;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:hover {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"]:hover {
   --primary-text: var(--tm-fg2) !important;
   --secondary-text: var(--tm-fg2) !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"][aria-current="page"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"][aria-current="page"] {
   --primary-text: var(--tm-fg1) !important;
   --secondary-text: var(--tm-fg1) !important;
 }
@@ -790,7 +790,7 @@ html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"][aria-curren
 /* Hovered, Teams shows the row's "…" where the time was; so does Messenger. */
 /* (Its own name: --tm-row-hover is the hover colour, which this flag
    replaced inside the row, leaving the hovered row without its fill.) */
-html[data-fmess-chats] [data-fmess-list] [role="row"]:hover {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"]:hover {
   --tm-row-hovered: 1;
 }
 @container style(--tm-row-hovered: 1) {
@@ -809,123 +809,123 @@ html[data-fmess-chats] [data-fmess-list] [role="row"]:hover {
     font-weight: 400 !important;
   }
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:hover {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"]:hover {
   background: var(--tm-row-hover) !important;
   box-shadow: 0 0 0 1px var(--tm-stroke-alpha) !important;
 }
 /* In dark, Teams' hovered row has no outline. */
-html[data-fmess-dark][data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:hover {
+html[data-imessenger-dark][data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"]:hover {
   box-shadow: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[role="link"]:active {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[role="link"]:active {
   background: var(--tm-row-pressed) !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[aria-current="page"],
-html[data-fmess-chats] [data-fmess-list] [role="row"] a[aria-current="page"]:hover {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[aria-current="page"],
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] a[aria-current="page"]:hover {
   background: var(--tm-selected) !important;
   box-shadow: none !important;
 }
 
 /* The row's "…" (Messenger's menu for the chat): Teams' flat icon, without
    Messenger's white circle. */
-html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"] {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] [role="button"][aria-haspopup="menu"] {
   width: 32px !important;
   height: 32px !important;
   border-radius: 4px !important;
   background: transparent !important;
   box-shadow: none !important;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"] svg {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] [role="button"][aria-haspopup="menu"] svg {
   width: 20px !important;
   height: 20px !important;
   background: var(--tm-fg2);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"] svg * {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] [role="button"][aria-haspopup="menu"] svg * {
   visibility: hidden;
 }
-html[data-fmess-chats] [data-fmess-list] [role="row"] [role="button"][aria-haspopup="menu"]:hover svg {
+html[data-imessenger-chats] [data-imessenger-list] [role="row"] [role="button"][aria-haspopup="menu"]:hover svg {
   background: var(--tm-fg1);
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.75 10a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0Zm5 0a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0ZM15 11.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z'/%3E%3C/svg%3E");
 }
 
 /* The chat: a white card with Teams' corners and shadow, 8px from the
    window's edges (and from the top where there is no strip). */
-html[data-fmess-chats] [role="main"] {
-  margin: max(0px, calc(8px - var(--fmess-title-bar, 0px))) 8px 8px 0 !important;
+html[data-imessenger-chats] [role="main"] {
+  margin: max(0px, calc(8px - var(--imessenger-title-bar, 0px))) 8px 8px 0 !important;
   border-radius: 10px !important;
   overflow: hidden !important;
   box-shadow: var(--tm-shadow8) !important;
   background: var(--tm-card) !important;
 }
-html[data-fmess-chats] [role="main"] [data-mw-file-dropzone] {
+html[data-imessenger-chats] [role="main"] [data-mw-file-dropzone] {
   background: var(--tm-card) !important;
   --messenger-card-background: transparent !important;
 }
-html[data-fmess-chats] [role="main"] [data-mw-file-dropzone] [style*="background-image"]:has([role="log"]) {
+html[data-imessenger-chats] [role="main"] [data-mw-file-dropzone] [style*="background-image"]:has([role="log"]) {
   background: transparent !important;
 }
 
 /* Header: the name in Teams' bold 20px, a hairline under it, the calls
    as Teams' purple filled icons, then a divider and Teams' "more". */
-html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="chat-header"] {
   background: var(--tm-card) !important;
   box-shadow: none !important;
   border-bottom: 1px solid var(--tm-stroke-alpha) !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] a[role="link"] > div > div > div:first-child {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="chat-header"] a[role="link"] > div > div > div:first-child {
   zoom: 0.8;
   margin-left: 6px !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] :is(h1, h2, h3) span {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="chat-header"] :is(h1, h2, h3) span {
   font-size: 20px !important;
   font-weight: 700 !important;
   line-height: 28px !important;
   color: var(--tm-fg1) !important;
 }
-html[data-fmess-chats] [role="main"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"]) {
+html[data-imessenger-chats] [role="main"] :is([data-imessenger-ui="audio-call"], [data-imessenger-ui="video-call"], [data-imessenger-ui="info"]) {
   width: 32px !important;
   height: 32px !important;
   border-radius: 8px !important;
   background: transparent !important;
   --hover-overlay: transparent !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="info"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="info"] {
   border-radius: 4px !important;
 }
-html[data-fmess-chats] [role="main"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"]):hover {
+html[data-imessenger-chats] [role="main"] :is([data-imessenger-ui="audio-call"], [data-imessenger-ui="video-call"]):hover {
   background: var(--tm-bg1-hover) !important;
 }
-html[data-fmess-chats] [role="main"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"]) svg {
+html[data-imessenger-chats] [role="main"] :is([data-imessenger-ui="audio-call"], [data-imessenger-ui="video-call"], [data-imessenger-ui="info"]) svg {
   width: 20px !important;
   height: 20px !important;
   background: var(--tm-brand-icon);
 }
-html[data-fmess-chats] [role="main"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"], [data-fmess-ui="info"]) svg * {
+html[data-imessenger-chats] [role="main"] :is([data-imessenger-ui="audio-call"], [data-imessenger-ui="video-call"], [data-imessenger-ui="info"]) svg * {
   visibility: hidden;
 }
-html[data-fmess-chats] [role="main"] :is([data-fmess-ui="audio-call"], [data-fmess-ui="video-call"]):hover svg {
+html[data-imessenger-chats] [role="main"] :is([data-imessenger-ui="audio-call"], [data-imessenger-ui="video-call"]):hover svg {
   background: var(--tm-brand-pressed);
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="audio-call"] svg {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="audio-call"] svg {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.99 2.07A2 2 0 0 1 9.3 3l.08.15.66 1.47a2.5 2.5 0 0 1-.44 2.72l-.13.13-1.05.98c-.19.17-.04.86.64 2.04.6 1.06 1.1 1.56 1.35 1.58h.1l2.05-.64a1.5 1.5 0 0 1 1.56.45l.1.11 1.35 1.88a2 2 0 0 1-.13 2.5l-.12.12-.54.52a3.5 3.5 0 0 1-3.72.7c-1.93-.78-3.69-2.56-5.29-5.33S3.52 7.2 3.82 5.14a3.5 3.5 0 0 1 2.26-2.8l.19-.06.72-.21Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="video-call"] svg {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="video-call"] svg {
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M2 7a3 3 0 0 1 3-3h5a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V7Zm14.04 7.78L14 13.37V6.63l2.04-1.4c.83-.58 1.96.01 1.96 1.02v7.5c0 1-1.13 1.6-1.96 1.03Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="info"] svg {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="info"] svg {
   background: var(--tm-fg2);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.25 10a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0Zm5 0a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM15 11.25a1.25 1.25 0 1 0 0-2.5 1.25 1.25 0 0 0 0 2.5Z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="info"]:is(:hover, [aria-expanded="true"]) svg {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="info"]:is(:hover, [aria-expanded="true"]) svg {
   background: var(--tm-brand-icon);
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6.75 10a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0Zm5 0a1.75 1.75 0 1 1-3.5 0 1.75 1.75 0 0 1 3.5 0ZM15 11.75a1.75 1.75 0 1 0 0-3.5 1.75 1.75 0 0 0 0 3.5Z'/%3E%3C/svg%3E");
 }
 /* Video before audio, as in Teams, and a divider before "more". */
-html[data-fmess-chats] [role="main"] [data-fmess-ui="chat-header"] div:has(> div > span > [data-fmess-ui="video-call"]) {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="chat-header"] div:has(> div > span > [data-imessenger-ui="video-call"]) {
   order: -1;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="info"]::before {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="info"]::before {
   content: "";
   position: absolute;
   left: -9px;
@@ -935,36 +935,42 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="info"]::before {
   background: var(--tm-stroke3);
   pointer-events: none;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="info"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="info"] {
   margin-left: 17px !important;
 }
 
 /* Messages: Teams' bubbles, type and gutters. */
-html[data-fmess-chats] [role="main"] [role="log"] {
+html[data-imessenger-chats] [role="main"] [role="log"] {
   padding-inline: 16px 20px !important;
   box-sizing: border-box !important;
 }
-html[data-fmess-chats] [role="main"] [data-message-id] [role="presentation"] {
+html[data-imessenger-chats] [role="main"] [data-message-id] [role="presentation"] {
   border-radius: 12px !important;
 }
-html[data-fmess-chats] [role="main"] [data-message-id] [dir="auto"] {
+html[data-imessenger-chats] [role="main"] [data-message-id] [dir="auto"] {
   font-size: 14px !important;
   line-height: 20px !important;
 }
+/* A quote in a message ("> …"): Messenger draws its bar and text white, for
+   its own dark bubbles; on Teams' light lavender they hardly showed. */
+html[data-imessenger-chats] [role="main"] [data-message-id] blockquote {
+  --secondary-text-on-media: var(--tm-fg2) !important;
+  --chat-text-blockquote-color-text-primary-media: var(--tm-quote-bar) !important;
+}
 /* Someone typing: their picture and dots in line with the messages'
    (Messenger sets them 8px further left). */
-html[data-fmess-chats] [role="main"] [role="log"] [aria-hidden="true"]:not([data-message-id] *):has(> div[role="presentation"] + div [role="presentation"]) > div[role="presentation"]:first-child {
+html[data-imessenger-chats] [role="main"] [role="log"] [aria-hidden="true"]:not([data-message-id] *):has(> div[role="presentation"] + div [role="presentation"]) > div[role="presentation"]:first-child {
   padding-left: 14px !important;
 }
 /* The sender's name above a group's messages: Teams' small grey line. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] h4 span {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] h4 span {
   font-size: 12px !important;
   line-height: 16px !important;
   font-weight: 400 !important;
   color: var(--tm-fg3) !important;
 }
 /* Dates: plain grey text, no lines, as in Teams. */
-html[data-fmess-chats] [role="main"] [data-scope="date_break"] > span > span {
+html[data-imessenger-chats] [role="main"] [data-scope="date_break"] > span > span {
   color: var(--tm-fg3) !important;
   font-size: 12px !important;
   font-weight: 400 !important;
@@ -977,10 +983,10 @@ html[data-fmess-chats] [role="main"] [data-scope="date_break"] > span > span {
    attach (or + while typing), a divider, send. Messenger's like button
    would send a 👍 from an empty box, which Teams never does: in its place
    Teams' send arrow, a picture only, until there is text to send. */
-html[data-fmess-chats] [role="main"] div:has(> [data-fmess-ui="composer"]) {
+html[data-imessenger-chats] [role="main"] div:has(> [data-imessenger-ui="composer"]) {
   background: var(--tm-card) !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="composer"] {
   margin: 0 32px 24px !important;
   min-height: 46px !important;
   padding: 0 6px 0 0 !important;
@@ -990,33 +996,31 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"] {
   border-radius: 6px !important;
   background: var(--tm-card) !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="composer"]:focus-within {
   box-shadow: inset 0 -4px 0 -2px var(--tm-focus-line) !important;
 }
-[data-fmess-ui="composer"] > div:has(+ div [role="textbox"]) {
+[data-imessenger-ui="composer"] > div:has(+ div [role="textbox"]) {
   display: contents !important;
 }
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="voice-clip"]),
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="sticker"]),
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="gif"]) {
-  display: none !important;
-}
-[data-fmess-ui="composer"] > div:has([role="textbox"]) {
+[data-imessenger-ui="composer"] > div:has([role="textbox"]) {
   order: 1;
   flex: 1 1 0 !important;
 }
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="attach"]) {
+[data-imessenger-ui="composer"] div:has(> span :is([data-imessenger-ui="attach"], [data-imessenger-ui="sticker"], [data-imessenger-ui="gif"])) {
   order: 2;
 }
-[data-fmess-ui="composer"] div:has(> span [data-fmess-ui="more-actions"]) {
+[data-imessenger-ui="composer"] div:has(> span [data-imessenger-ui="voice-clip"]) {
   order: 3;
 }
-[data-fmess-ui="composer"] > span {
+[data-imessenger-ui="composer"] div:has(> span [data-imessenger-ui="more-actions"]) {
+  order: 3;
+}
+[data-imessenger-ui="composer"] > span {
   order: 4;
   position: relative !important;
   margin-left: 9px !important;
 }
-[data-fmess-ui="composer"] > span::before {
+[data-imessenger-ui="composer"] > span::before {
   content: "";
   position: absolute;
   left: -5px;
@@ -1026,35 +1030,38 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
   background: var(--tm-composer-sep);
   pointer-events: none;
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) {
+[data-imessenger-ui="composer"] :is([data-imessenger-ui="attach"], [data-imessenger-ui="more-actions"], [data-imessenger-ui="emoji"], [data-imessenger-ui="send"], [data-imessenger-ui="voice-clip"], [data-imessenger-ui="sticker"], [data-imessenger-ui="gif"]) {
   width: 32px !important;
   height: 32px !important;
   border-radius: 4px !important;
   background: transparent !important;
   --hover-overlay: transparent !important;
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) svg {
+[data-imessenger-ui="composer"] :is([data-imessenger-ui="attach"], [data-imessenger-ui="more-actions"], [data-imessenger-ui="emoji"], [data-imessenger-ui="send"], [data-imessenger-ui="voice-clip"], [data-imessenger-ui="sticker"], [data-imessenger-ui="gif"]) svg {
   width: 16px !important;
   height: 16px !important;
   background: var(--tm-fg2);
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]) svg * {
+[data-imessenger-ui="composer"] :is([data-imessenger-ui="attach"], [data-imessenger-ui="more-actions"], [data-imessenger-ui="emoji"], [data-imessenger-ui="send"], [data-imessenger-ui="voice-clip"], [data-imessenger-ui="sticker"], [data-imessenger-ui="gif"]) svg * {
   visibility: hidden;
 }
-[data-fmess-ui="composer"] :is([data-fmess-ui="attach"], [data-fmess-ui="more-actions"], [data-fmess-ui="emoji"], [data-fmess-ui="send"]):hover svg {
+[data-imessenger-ui="composer"] :is([data-imessenger-ui="attach"], [data-imessenger-ui="more-actions"], [data-imessenger-ui="emoji"], [data-imessenger-ui="send"], [data-imessenger-ui="voice-clip"], [data-imessenger-ui="sticker"], [data-imessenger-ui="gif"]):hover svg {
   background: var(--tm-brand-icon);
 }
-[data-fmess-ui="composer"] [data-fmess-ui="emoji"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3ZM7.15467 12.4273C8.66416 13.9463 11.0877 14.0045 12.6671 12.5961L12.8453 12.4273C13.04 12.2314 13.3566 12.2304 13.5524 12.4251C13.7265 12.5981 13.7467 12.8674 13.6123 13.0627L13.5547 13.1322L13.5323 13.1545C11.5691 15.1054 8.39616 15.0953 6.44533 13.1322C6.25069 12.9363 6.25169 12.6197 6.44757 12.4251C6.64344 12.2304 6.96002 12.2314 7.15467 12.4273ZM12.5 7.5C13.0523 7.5 13.5 7.94772 13.5 8.5C13.5 9.05228 13.0523 9.5 12.5 9.5C11.9477 9.5 11.5 9.05228 11.5 8.5C11.5 7.94772 11.9477 7.5 12.5 7.5ZM7.5 7.5C8.05228 7.5 8.5 7.94772 8.5 8.5C8.5 9.05228 8.05228 9.5 7.5 9.5C6.94772 9.5 6.5 9.05228 6.5 8.5C6.5 7.94772 6.94772 7.5 7.5 7.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="emoji"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10ZM7.5 9.5C8.05228 9.5 8.5 9.05228 8.5 8.5C8.5 7.94772 8.05228 7.5 7.5 7.5C6.94772 7.5 6.5 7.94772 6.5 8.5C6.5 9.05228 6.94772 9.5 7.5 9.5ZM11.75 12.5C11.75 11.5335 10.9665 10.75 10 10.75C9.0335 10.75 8.25 11.5335 8.25 12.5C8.25 13.4665 9.0335 14.25 10 14.25C10.9665 14.25 11.75 13.4665 11.75 12.5ZM12.5 9.5C13.0523 9.5 13.5 9.05228 13.5 8.5C13.5 7.94772 13.0523 7.5 12.5 7.5C11.9477 7.5 11.5 7.94772 11.5 8.5C11.5 9.05228 11.9477 9.5 12.5 9.5Z'/%3E%3C/svg%3E"); }
-[data-fmess-ui="composer"] [data-fmess-ui="attach"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M4.82865 10.4853L10.4855 4.82843C11.6571 3.65685 13.5566 3.65685 14.7281 4.82843C15.8997 6 15.8997 7.89949 14.7281 9.07107L8.01063 15.7886C7.42485 16.3744 6.4751 16.3744 5.88931 15.7886C5.30352 15.2028 5.30352 14.253 5.88931 13.6673L11.8997 7.65685C12.095 7.46159 12.095 7.14501 11.8997 6.94975C11.7045 6.75448 11.3879 6.75448 11.1926 6.94975L5.1822 12.9602C4.20589 13.9365 4.20589 15.5194 5.1822 16.4957C6.15852 17.472 7.74143 17.472 8.71774 16.4957L15.4353 9.77817C16.9974 8.21607 16.9974 5.68342 15.4353 4.12132C13.8732 2.55922 11.3405 2.55922 9.7784 4.12132L4.12154 9.77817C3.92628 9.97343 3.92628 10.29 4.12154 10.4853C4.31681 10.6805 4.63339 10.6805 4.82865 10.4853Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="attach"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M5.28033 10.6088L10.5836 5.30546C11.6576 4.23151 13.3988 4.23151 14.4727 5.30546C15.5467 6.3794 15.5467 8.1206 14.4727 9.19454L8.10876 15.5585C7.6206 16.0467 6.82915 16.0467 6.34099 15.5585C5.85283 15.0703 5.85283 14.2789 6.34099 13.7907L11.9978 8.13388C12.2907 7.84099 12.2907 7.36612 11.9978 7.07322C11.705 6.78033 11.2301 6.78033 10.9372 7.07322L5.28033 12.7301C4.20639 13.804 4.20639 15.5452 5.28033 16.6192C6.35427 17.6931 8.09548 17.6931 9.16942 16.6192L15.5334 10.2552C17.1931 8.59548 17.1931 5.90452 15.5334 4.2448C13.8737 2.58507 11.1827 2.58507 9.52297 4.2448L4.21967 9.5481C3.92678 9.84099 3.92678 10.3159 4.21967 10.6088C4.51256 10.9017 4.98744 10.9017 5.28033 10.6088Z'/%3E%3C/svg%3E"); }
-[data-fmess-ui="composer"] [data-fmess-ui="more-actions"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2.5C10 2.22386 9.77614 2 9.5 2C9.22386 2 9 2.22386 9 2.5V9H2.5C2.22386 9 2 9.22386 2 9.5C2 9.77614 2.22386 10 2.5 10H9V16.5C9 16.7761 9.22386 17 9.5 17C9.77614 17 10 16.7761 10 16.5V10H16.5C16.7761 10 17 9.77614 17 9.5C17 9.22386 16.7761 9 16.5 9H10V2.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="more-actions"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10.5 2.75C10.5 2.33579 10.1642 2 9.75 2C9.33579 2 9 2.33579 9 2.75V9H2.75C2.33579 9 2 9.33579 2 9.75C2 10.1642 2.33579 10.5 2.75 10.5H9V16.75C9 17.1642 9.33579 17.5 9.75 17.5C10.1642 17.5 10.5 17.1642 10.5 16.75V10.5H16.75C17.1642 10.5 17.5 10.1642 17.5 9.75C17.5 9.33579 17.1642 9 16.75 9H10.5V2.75Z'/%3E%3C/svg%3E"); }
-[data-fmess-ui="composer"] [data-fmess-ui="send"] svg { background: var(--tm-brand-icon); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
-[data-fmess-ui="composer"] [data-fmess-ui="send"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.53835 11.7591C3.58866 11.5691 3.7456 11.4262 3.93946 11.3939L10.8204 10.2466C10.9047 10.2325 10.9744 10.1769 11.0079 10.1012L11.0259 10.0411C11.0454 9.92436 10.9805 9.81305 10.8759 9.76934L10.8204 9.7534L3.90061 8.6001C3.70668 8.56778 3.54969 8.4248 3.49942 8.23473L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149Z'/%3E%3C/svg%3E"); }
+[data-imessenger-ui="composer"] [data-imessenger-ui="emoji"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3ZM7.15467 12.4273C8.66416 13.9463 11.0877 14.0045 12.6671 12.5961L12.8453 12.4273C13.04 12.2314 13.3566 12.2304 13.5524 12.4251C13.7265 12.5981 13.7467 12.8674 13.6123 13.0627L13.5547 13.1322L13.5323 13.1545C11.5691 15.1054 8.39616 15.0953 6.44533 13.1322C6.25069 12.9363 6.25169 12.6197 6.44757 12.4251C6.64344 12.2304 6.96002 12.2314 7.15467 12.4273ZM12.5 7.5C13.0523 7.5 13.5 7.94772 13.5 8.5C13.5 9.05228 13.0523 9.5 12.5 9.5C11.9477 9.5 11.5 9.05228 11.5 8.5C11.5 7.94772 11.9477 7.5 12.5 7.5ZM7.5 7.5C8.05228 7.5 8.5 7.94772 8.5 8.5C8.5 9.05228 8.05228 9.5 7.5 9.5C6.94772 9.5 6.5 9.05228 6.5 8.5C6.5 7.94772 6.94772 7.5 7.5 7.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="emoji"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10ZM7.5 9.5C8.05228 9.5 8.5 9.05228 8.5 8.5C8.5 7.94772 8.05228 7.5 7.5 7.5C6.94772 7.5 6.5 7.94772 6.5 8.5C6.5 9.05228 6.94772 9.5 7.5 9.5ZM11.75 12.5C11.75 11.5335 10.9665 10.75 10 10.75C9.0335 10.75 8.25 11.5335 8.25 12.5C8.25 13.4665 9.0335 14.25 10 14.25C10.9665 14.25 11.75 13.4665 11.75 12.5ZM12.5 9.5C13.0523 9.5 13.5 9.05228 13.5 8.5C13.5 7.94772 13.0523 7.5 12.5 7.5C11.9477 7.5 11.5 7.94772 11.5 8.5C11.5 9.05228 11.9477 9.5 12.5 9.5Z'/%3E%3C/svg%3E"); }
+[data-imessenger-ui="composer"] [data-imessenger-ui="attach"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M4.82865 10.4853L10.4855 4.82843C11.6571 3.65685 13.5566 3.65685 14.7281 4.82843C15.8997 6 15.8997 7.89949 14.7281 9.07107L8.01063 15.7886C7.42485 16.3744 6.4751 16.3744 5.88931 15.7886C5.30352 15.2028 5.30352 14.253 5.88931 13.6673L11.8997 7.65685C12.095 7.46159 12.095 7.14501 11.8997 6.94975C11.7045 6.75448 11.3879 6.75448 11.1926 6.94975L5.1822 12.9602C4.20589 13.9365 4.20589 15.5194 5.1822 16.4957C6.15852 17.472 7.74143 17.472 8.71774 16.4957L15.4353 9.77817C16.9974 8.21607 16.9974 5.68342 15.4353 4.12132C13.8732 2.55922 11.3405 2.55922 9.7784 4.12132L4.12154 9.77817C3.92628 9.97343 3.92628 10.29 4.12154 10.4853C4.31681 10.6805 4.63339 10.6805 4.82865 10.4853Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="attach"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M5.28033 10.6088L10.5836 5.30546C11.6576 4.23151 13.3988 4.23151 14.4727 5.30546C15.5467 6.3794 15.5467 8.1206 14.4727 9.19454L8.10876 15.5585C7.6206 16.0467 6.82915 16.0467 6.34099 15.5585C5.85283 15.0703 5.85283 14.2789 6.34099 13.7907L11.9978 8.13388C12.2907 7.84099 12.2907 7.36612 11.9978 7.07322C11.705 6.78033 11.2301 6.78033 10.9372 7.07322L5.28033 12.7301C4.20639 13.804 4.20639 15.5452 5.28033 16.6192C6.35427 17.6931 8.09548 17.6931 9.16942 16.6192L15.5334 10.2552C17.1931 8.59548 17.1931 5.90452 15.5334 4.2448C13.8737 2.58507 11.1827 2.58507 9.52297 4.2448L4.21967 9.5481C3.92678 9.84099 3.92678 10.3159 4.21967 10.6088C4.51256 10.9017 4.98744 10.9017 5.28033 10.6088Z'/%3E%3C/svg%3E"); }
+[data-imessenger-ui="composer"] [data-imessenger-ui="more-actions"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2.5C10 2.22386 9.77614 2 9.5 2C9.22386 2 9 2.22386 9 2.5V9H2.5C2.22386 9 2 9.22386 2 9.5C2 9.77614 2.22386 10 2.5 10H9V16.5C9 16.7761 9.22386 17 9.5 17C9.77614 17 10 16.7761 10 16.5V10H16.5C16.7761 10 17 9.77614 17 9.5C17 9.22386 16.7761 9 16.5 9H10V2.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="more-actions"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10.5 2.75C10.5 2.33579 10.1642 2 9.75 2C9.33579 2 9 2.33579 9 2.75V9H2.75C2.33579 9 2 9.33579 2 9.75C2 10.1642 2.33579 10.5 2.75 10.5H9V16.75C9 17.1642 9.33579 17.5 9.75 17.5C10.1642 17.5 10.5 17.1642 10.5 16.75V10.5H16.75C17.1642 10.5 17.5 10.1642 17.5 9.75C17.5 9.33579 17.1642 9 16.75 9H10.5V2.75Z'/%3E%3C/svg%3E"); }
+[data-imessenger-ui="composer"] [data-imessenger-ui="voice-clip"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3ZM8 5a2 2 0 1 1 4 0v5a2 2 0 1 1-4 0V5ZM5 9.5a.5.5 0 0 0-1 0 6 6 0 0 0 5.5 5.98V17.5a.5.5 0 0 0 1 0v-2.02A6 6 0 0 0 16 9.5a.5.5 0 0 0-1 0 5 5 0 0 1-10 0Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="sticker"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16' fill='none' stroke='black' stroke-linejoin='round'%3E%3Cpath d='M5.5 3.5h9A2 2 0 0 1 16.5 5.5v5.2a2 2 0 0 1-.6 1.4l-3.8 3.8a2 2 0 0 1-1.4.6H5.5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2Z'/%3E%3Cpath d='M16.4 11.5H14a2 2 0 0 0-2 2v2.4'/%3E%3Cpath d='M7.2 8.2v.4M11.8 8.2v.4' stroke-linecap='round'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="gif"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4.5' width='14' height='11' rx='2'/%3E%3Cpath d='M8.2 8.6A1.6 1.6 0 1 0 8.2 11.4V10.5H7.3M10.2 8.4v3.2M12 11.6V8.4h2M12 10h1.5'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="send"] svg { background: var(--tm-brand-icon); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[data-imessenger-ui="composer"] [data-imessenger-ui="send"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.53835 11.7591C3.58866 11.5691 3.7456 11.4262 3.93946 11.3939L10.8204 10.2466C10.9047 10.2325 10.9744 10.1769 11.0079 10.1012L11.0259 10.0411C11.0454 9.92436 10.9805 9.81305 10.8759 9.76934L10.8204 9.7534L3.90061 8.6001C3.70668 8.56778 3.54969 8.4248 3.49942 8.23473L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149Z'/%3E%3C/svg%3E"); }
 /* The like button sends a 👍 (or the chat's emoji) when the box is empty;
    Teams has none, and shows its send button greyed instead. */
-[data-fmess-ui="composer"] > span:has(> [data-fmess-ui="like"]) {
+[data-imessenger-ui="composer"] > span:has(> [data-imessenger-ui="like"]) {
   --tm-like: 1;
   width: 32px !important;
   height: 32px !important;
@@ -1065,14 +1072,14 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
     display: none !important;
   }
 }
-[data-fmess-ui="composer"] > span:has(> [data-fmess-ui="like"])::after {
+[data-imessenger-ui="composer"] > span:has(> [data-imessenger-ui="like"])::after {
   content: "";
   position: absolute;
   inset: 8px;
   background: var(--tm-fg2);
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2.72113 2.05149L18.0756 9.61746C18.3233 9.73952 18.4252 10.0393 18.3031 10.287C18.2544 10.3858 18.1744 10.4658 18.0756 10.5145L2.72144 18.0803C2.47374 18.2023 2.17399 18.1005 2.05193 17.8528C1.99856 17.7445 1.98619 17.6205 2.0171 17.5038L3.9858 10.0701L2.01676 2.62789C1.94612 2.36093 2.10528 2.08726 2.37224 2.01663C2.48893 1.98576 2.61285 1.99814 2.72113 2.05149ZM3.26445 3.43403L4.87357 9.51612L4.93555 9.50412L5 9.5H12C12.2761 9.5 12.5 9.72386 12.5 10C12.5 10.2455 12.3231 10.4496 12.0899 10.4919L12 10.5H5C4.9686 10.5 4.93787 10.4971 4.90807 10.4916L3.26508 16.6976L16.7234 10.066L3.26445 3.43403Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
 }
-[data-fmess-ui="composer"] > div:has([role="textbox"]) {
+[data-imessenger-ui="composer"] > div:has([role="textbox"]) {
   --tm-field: 1;
 }
 @container style(--tm-field: 1) {
@@ -1092,7 +1099,7 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
     white-space: nowrap;
   }
 }
-[data-fmess-ui="composer"] [role="textbox"] {
+[data-imessenger-ui="composer"] [role="textbox"] {
   font-size: 14px !important;
   line-height: 20px !important;
 }
@@ -1102,7 +1109,7 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer"]:focus-within {
    its top part, its content Teams' quote card: light grey, a grey bar on
    the left, 4px corners, a faint shadow, the name line small and grey, the
    quoted text dark, an X at the right. */
-html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="composer-bar"] {
   margin: 0 32px !important;
   padding: 12px 12px 4px !important;
   overflow: visible !important;
@@ -1112,11 +1119,11 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] {
   border-radius: 6px 6px 0 0 !important;
   background: var(--tm-card) !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] + [data-fmess-ui="composer"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="composer-bar"] + [data-imessenger-ui="composer"] {
   border-top: 0 !important;
   border-radius: 0 0 6px 6px !important;
 }
-html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] > div {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="composer-bar"] > div {
   --tm-quote-card: 1;
   align-items: flex-start !important;
   width: fit-content !important;
@@ -1168,34 +1175,40 @@ html[data-fmess-chats] [role="main"] [data-fmess-ui="composer-bar"] > div {
 }
 
 /* A message's hover actions: one Teams card (white, 8px corners, shadow16)
-   above the message, at its right: Teams' four quick reactions (fMess adds
-   them, --fmess-quick-reactions), add-reaction, a divider, reply, more, in
+   above the message, at its right: Teams' four quick reactions (iMessenger adds
+   them, --imessenger-quick-reactions), add-reaction, a divider, reply, more, in
    Teams' icons. Messenger's buttons are found by their icons (react, reply,
    more), in Teams' order. */
-html[data-fmess-chats] {
-  --fmess-quick-reactions: 1f44d 2764 1f606 1f62e;
+html[data-imessenger-chats] {
+  --imessenger-quick-reactions: 1f44d 2764 1f606 1f62e;
 }
 /* Your messages are the rows whose first column is the read-receipt one
    (an empty role=none), not a picture's; Messenger lays them out reversed. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:has(> [role="presentation"]:first-child > [role="presentation"] > [role="none"]) {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:has(> [role="presentation"]:first-child > [role="presentation"] > [role="none"]) {
   --tm-own: 1;
 }
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="toolbar"] {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] [role="toolbar"] {
   position: static !important;
 }
 /* The card hangs above the message, from the row (the actions' own column
    is not positioned): theirs from the message's start (past the 50px of
    pictures), yours ending where your messages end. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"] > [role="presentation"]:has(> [role="presentation"] > [role="toolbar"]) {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"] > [role="presentation"]:has(> [role="presentation"] > [role="toolbar"]) {
   position: static !important;
 }
+/* Right above the message, as in Teams: the row is what the card hangs
+   from. Without a position of its own, the card hung from the group, above
+   the sender's name, some 30px off the message. */
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] > [role="presentation"]:has(> [role="presentation"] > [role="presentation"] > [role="toolbar"]) {
+  position: relative !important;
+}
 /* After a quick reaction the card goes, as Messenger's own actions do,
-   until the pointer leaves the message (fMess's data-fmess-reacted). Kept
+   until the pointer leaves the message (iMessenger's data-imessenger-reacted). Kept
    in place, hidden: Messenger's picker is anchored to its react button. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"][data-fmess-reacted] [role="toolbar"] > [role="presentation"] > [role="presentation"] {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"][data-imessenger-reacted] [role="toolbar"] > [role="presentation"] > [role="presentation"] {
   visibility: hidden !important;
 }
-html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+html[data-imessenger-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
   --tm-actions: 1;
   position: absolute !important;
   z-index: 2 !important;
@@ -1231,23 +1244,54 @@ html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > 
    the pointer had left: the card shows only on the message under the
    pointer, while one of its menus is open, or while a key (Tab) has put the
    focus on one of its buttons. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:not(:hover):not(:has([aria-expanded="true"], :focus-visible)) [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"]:not(:hover):not(:has([aria-expanded="true"], :focus-visible)) [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
   display: none !important;
 }
+/* A bridge to the card: while a message shows its card, the strip the card
+   hangs in counts as that message, the whole chat wide (the card's own
+   ::before, under its buttons). Messenger gives the actions to whatever
+   message is under the pointer, and on the way up the pointer crossed the
+   one above beside the card (a sender's name, say, a row of its own), and
+   the card was gone before it was reached: on a tall message, whose card
+   is far from the pointer, nearly always. The card stacks above the
+   messages (z-index 2), so its bridge does too. */
+html[data-imessenger-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"])::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -1px;
+  height: 42px;
+  left: -50px;
+  width: 100vw;
+}
 @container style(--tm-own: 1) {
-  html[data-fmess-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
+  html[data-imessenger-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"])::before {
+    left: auto;
+    right: -8px;
+  }
+}
+/* The card hangs over the message above, and each message sits in a box of
+   its own stacking (position: relative; z-index: 0) that the message above
+   paints over, so the pointer reached that message instead of the card,
+   which it could see, and Messenger moved the actions there. While a
+   message has its card, its box comes first, as Teams' card does. */
+html[data-imessenger-chats] [role="main"] [role="log"] div:has(> div > [role="none"] > [role="article"] [role="toolbar"] [role="button"]) {
+  z-index: 1 !important;
+}
+@container style(--tm-own: 1) {
+  html[data-imessenger-chats] [role="main"] [role="toolbar"] > [role="presentation"] > [role="presentation"]:has([role="button"]) {
     left: auto !important;
     right: 8px !important;
   }
 }
 @container style(--tm-actions: 1) {
-  .fmess-quick-reactions {
+  .imessenger-quick-reactions {
     display: flex !important;
     flex: none !important;
     align-items: center !important;
     order: 0;
   }
-  .fmess-quick-reaction {
+  .imessenger-quick-reaction {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1258,17 +1302,17 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:not(:hover):n
     line-height: 24px;
     cursor: pointer;
   }
-  .fmess-quick-reaction img {
+  .imessenger-quick-reaction img {
     width: 24px !important;
     height: 24px !important;
     transition: transform 0.1s ease-out;
   }
-  .fmess-quick-reaction:hover img {
+  .imessenger-quick-reaction:hover img {
     transform: scale(1.15);
   }
   div:has(> span > div > [role="button"]),
   span:has(> div > [role="button"]),
-  div:not(.fmess-quick-reactions):has(> [role="button"]) {
+  div:not(.imessenger-quick-reactions):has(> [role="button"]) {
     flex: none !important;
     width: 32px !important;
     height: 32px !important;
@@ -1319,7 +1363,7 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"]:not(:hover):n
 }
 
 /* Reactions under a message: Teams' white pill with a thin line. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="button"] > span > div[role="none"]:has(> div > div > span > img) {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] [role="button"] > span > div[role="none"]:has(> div > div > span > img) {
   --tm-react: 1;
   padding: 3px 7px !important;
   border: 1px solid var(--tm-stroke2) !important;
@@ -1344,7 +1388,7 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] [role="button
   }
 }
 /* Seen: Teams' brand eye instead of the reader's tiny picture. */
-html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) > div > span > img {
+html[data-imessenger-chats] [role="main"] [data-scope="messages_table"] > div:not([role]) > div > span > img {
   content: var(--tm-eye);
   width: 16px !important;
   height: 16px !important;
@@ -1352,7 +1396,7 @@ html[data-fmess-chats] [role="main"] [data-scope="messages_table"] > div:not([ro
 }
 
 /* Details: on the card, a hairline before them. */
-html[data-fmess-chats] [role="main"] [data-fmess-ui="details"] {
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="details"] {
   background: var(--tm-card) !important;
   box-shadow: -1px 0 0 var(--tm-stroke-alpha) !important;
 }
@@ -1528,15 +1572,15 @@ html [role="tooltip"] span {
 
 /* Menus: Teams' (Fluent) menu: 4px corners, 4px padding, 32px items in
    #424242 that turn dark on a grey hover, no arrow. */
-[role="menu"]:not([data-fmess-ui="reactions"]) > div:first-child {
+[role="menu"]:not([data-imessenger-ui="reactions"]) > div:first-child {
   border-radius: 4px !important;
   background: var(--tm-card) !important;
   box-shadow: var(--tm-shadow16) !important;
 }
-[role="menu"]:not([data-fmess-ui="reactions"]) > svg {
+[role="menu"]:not([data-imessenger-ui="reactions"]) > svg {
   display: none !important;
 }
-[role="menu"]:not([data-fmess-ui="reactions"]) div[style*="max-height"] {
+[role="menu"]:not([data-imessenger-ui="reactions"]) div[style*="max-height"] {
   padding: 4px 0 !important;
 }
 [role="menu"] [role="menuitem"] {
@@ -1566,7 +1610,7 @@ html [role="tooltip"] span {
 
 /* Facebook's dark islands on a light page (toasts such as "All chats
    loaded.", the photo viewer) keep their light text. */
-html:not([data-fmess-dark]) .__fb-dark-mode {
+html:not([data-imessenger-dark]) .__fb-dark-mode {
   --primary-text: #e4e6eb !important;
   --secondary-text: #b0b3b8 !important;
   --primary-icon: #e4e6eb !important;

@@ -35,7 +35,7 @@ const QUIT: &str = "quit";
 pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let lang = i18n::current(app);
     let mut tray = TrayIconBuilder::with_id(TRAY)
-        .tooltip("iMessenger")
+        .tooltip(settings::current(app).app_name())
         .menu(&tray_menu(app, lang)?)
         // Left click shows the window; the menu stays on right click.
         .show_menu_on_left_click(false)
@@ -57,6 +57,12 @@ pub fn install<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     #[cfg(target_os = "macos")]
     app.set_menu(app_menu(app, lang)?)?;
     Ok(())
+}
+
+pub fn set_tooltip<R: Runtime>(app: &AppHandle<R>, name: &str) {
+    if let Some(tray) = app.tray_by_id(TRAY) {
+        let _ = tray.set_tooltip(Some(name));
+    }
 }
 
 /// Builds the menus again in another language (chosen in Settings).
@@ -269,7 +275,7 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
         ZOOM_RESET => settings::zoom_by(app, 0),
         LOG_OUT => {
             if let Some(window) = window {
-                let _ = window.eval("window.__fmessLogOut?.()");
+                let _ = window.eval("window.__imessengerLogOut?.()");
             }
         }
         // The shortcuts live in inject.js; the menu shows them and forwards to them.
@@ -281,7 +287,7 @@ fn run<R: Runtime>(app: &AppHandle<R>, id: &str) {
                 _ => "'moveChat', -1",
             };
             if let Some(window) = window {
-                let _ = window.eval(format!("window.__fmessShortcut?.({call})"));
+                let _ = window.eval(format!("window.__imessengerShortcut?.({call})"));
             }
         }
         QUIT => app.exit(0),

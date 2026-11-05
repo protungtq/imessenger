@@ -1,17 +1,21 @@
   // Facebook is a single-page app, so moving between chats and the rest of
   // Facebook happens through the History API rather than real navigations.
-  const CHATS = 'data-fmess-chats';
+  const CHATS = 'data-imessenger-chats';
   // The chats, and the photo/video viewer opened from them.
   const onChatsPage = () => /^\/(messages|messenger_media)(\/|$)/.test(location.pathname);
   let lastPath = null;
   // Counts the chats opened, so work for one stops when another opens.
   let chatVisit = 0;
-  const MEDIA = 'data-fmess-media';
+  const MEDIA = 'data-imessenger-media';
   let viewerOpen = false;
   let viewerCloseTimer;
+  // Facebook doesn't always move to /messenger_media for the viewer (a
+  // chat's photos open in a layer at the same address), so the viewer on
+  // screen counts too.
+  const isViewerOpen = () => location.pathname.startsWith('/messenger_media') || Boolean(viewerCloseBox() || viewerBar());
   const syncRoute = () => {
     document.documentElement.toggleAttribute(CHATS, onChatsPage());
-    const inViewer = location.pathname.startsWith('/messenger_media');
+    const inViewer = isViewerOpen();
     document.documentElement.toggleAttribute(MEDIA, inViewer);
     if (inViewer !== viewerOpen) {
       viewerOpen = inViewer;
@@ -39,7 +43,7 @@
           // draft kept for this chat goes back only during this visit.
           const previousBox = document.querySelector('[role="main"] [contenteditable="true"][role="textbox"]');
           const visit = chatVisit;
-          setTimeout(() => window.__fmessReturnDraft?.(previousBox, () => visit === chatVisit));
+          setTimeout(() => window.__imessengerReturnDraft?.(previousBox, () => visit === chatVisit));
         }
       }
     }
@@ -72,6 +76,9 @@
     };
   }
   window.addEventListener('popstate', syncRoute);
+  window.navigation?.addEventListener('currententrychange', syncRoute);
+  // The viewer can open and close without a route change.
+  setInterval(() => document.documentElement && viewerOpen !== isViewerOpen() && syncRoute(), 200);
   withRoot(syncRoute);
 
   // Facebook links in a chat (reels, posts, profiles) open in the browser, so

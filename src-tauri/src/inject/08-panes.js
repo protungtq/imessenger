@@ -8,9 +8,9 @@
   // second child of the row that holds the chat (CHAT_ROW, found from the
   // messages); Facebook adds and drops them in that row as they're opened
   // and closed, and the row stays, so its widths apply as soon as they open.
-  const LIST_PANE = 'data-fmess-list';
-  const CHAT_ROW = 'data-fmess-chat-row';
-  const RESIZING = 'data-fmess-resizing';
+  const LIST_PANE = 'data-imessenger-list';
+  const CHAT_ROW = 'data-imessenger-chat-row';
+  const RESIZING = 'data-imessenger-resizing';
   // The chat keeps at least this much room.
   const MIN_CHAT_WIDTH = 360;
   const paneWidths = { ...settings.paneWidths };
@@ -18,20 +18,20 @@
   const edgeStyle = document.createElement('style');
   edgeStyle.textContent = `
     [${LIST_PANE}], [${CHAT_ROW}] > :nth-child(2) { position: relative; }
-    .fmess-pane-edge { position: absolute; top: 0; bottom: 0; width: 9px; z-index: 5; cursor: col-resize; touch-action: none; }
+    .imessenger-pane-edge { position: absolute; top: 0; bottom: 0; width: 9px; z-index: 5; cursor: col-resize; touch-action: none; }
     /* Half over the chat: the list's own scroll bar is at its edge. */
-    .fmess-pane-edge[data-pane="list"] { right: -6px; }
+    .imessenger-pane-edge[data-pane="list"] { right: -6px; }
     /* Inside the details: the chat's scroll bar is at their edge. */
-    .fmess-pane-edge[data-pane="details"] { left: 0; }
-    .fmess-pane-edge::after {
+    .imessenger-pane-edge[data-pane="details"] { left: 0; }
+    .imessenger-pane-edge::after {
       content: ''; position: absolute; top: 0; bottom: 0; width: 2px;
       background: var(--primary-button-background, #0866ff);
       opacity: 0; transition: opacity 0.15s;
     }
-    .fmess-pane-edge[data-pane="list"]::after { left: 5px; }
-    .fmess-pane-edge[data-pane="details"]::after { left: 0; }
-    .fmess-pane-edge:hover::after { opacity: 0.6; transition-delay: 0.15s; }
-    .fmess-pane-edge.dragging::after { opacity: 0.6; transition-delay: 0s; }
+    .imessenger-pane-edge[data-pane="list"]::after { left: 5px; }
+    .imessenger-pane-edge[data-pane="details"]::after { left: 0; }
+    .imessenger-pane-edge:hover::after { opacity: 0.6; transition-delay: 0.15s; }
+    .imessenger-pane-edge.dragging::after { opacity: 0.6; transition-delay: 0s; }
     html[${RESIZING}], html[${RESIZING}] * { cursor: col-resize !important; -webkit-user-select: none !important; user-select: none !important; }
   `;
   withRoot((root) => root.append(edgeStyle));
@@ -106,7 +106,7 @@
   };
   const paneEdge = (pane) => {
     const edge = document.createElement('div');
-    edge.className = 'fmess-pane-edge';
+    edge.className = 'imessenger-pane-edge';
     edge.dataset.pane = pane;
     edge.addEventListener('pointerdown', (event) => startPaneDrag(event, edge));
     edge.addEventListener('dblclick', (event) => {

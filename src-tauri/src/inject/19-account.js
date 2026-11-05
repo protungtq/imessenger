@@ -2,7 +2,7 @@
   // above the chats, opening a menu with Log Out. Facebook keeps both in its
   // top bar, which iMessenger hides in the chats, so the picture goes before
   // "Chats" and opens iMessenger's native account menu (show_account_menu).
-  const ACCOUNT = 'fmess-account';
+  const ACCOUNT = 'imessenger-account';
   const accountStyle = document.createElement('style');
   accountStyle.textContent = `
     #${ACCOUNT} {
@@ -31,10 +31,10 @@
     await loadModules(['LSDatabaseSingleton']);
     const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
     contactPicture = (await db.tables.contacts.get(int64Key(me)))?.profilePictureUrl || contactPicture;
-    // A theme can show your picture and name (var(--fmess-avatar), attr(data-fmess-name)).
+    // A theme can show your picture and name (var(--imessenger-avatar), attr(data-imessenger-name)).
     const root = document.documentElement;
-    if (contactPicture) root.style.setProperty('--fmess-avatar', `url("${contactPicture}")`);
-    root.setAttribute('data-fmess-name', window.require('CurrentUserInitialData').NAME || '');
+    if (contactPicture) root.style.setProperty('--imessenger-avatar', `url("${contactPicture}")`);
+    root.setAttribute('data-imessenger-name', window.require('CurrentUserInitialData').NAME || '');
   };
   const currentAccount = () => {
     try {
@@ -96,7 +96,7 @@
 
   // Called from the account menu. Facebook's own Log Out item posts this
   // form, which carries the logout token, and Facebook signs out from there.
-  window.__fmessLogOut = () => {
+  window.__imessengerLogOut = () => {
     const form = document.querySelector('form[action^="/logout.php"]');
     if (!form) return false;
     if (form.requestSubmit) form.requestSubmit();

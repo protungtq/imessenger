@@ -7,8 +7,8 @@
   // the content (selected chats stopped short of the edge), so the page hides
   // them and floats a thin indicator over the scrolling pane while it moves.
   // Call windows keep WebKit's. Wheel and trackpad scrolling are unchanged.
-  const MAIN = 'data-fmess-main';
-  const OVERLAY = 'data-fmess-overlay-scrollbars';
+  const MAIN = 'data-imessenger-main';
+  const OVERLAY = 'data-imessenger-overlay-scrollbars';
   let overlayScrollbars = false;
   // Measured in a shadow root, where the page's styles don't reach.
   const measureScrollbars = (root) => {
@@ -32,7 +32,7 @@
     html[${MAIN}][${OVERLAY}], html[${MAIN}][${OVERLAY}] * { scrollbar-width: thin !important; }
     html[${MAIN}]:not([${OVERLAY}]), html[${MAIN}]:not([${OVERLAY}]) * { scrollbar-width: none !important; }
     html[${MAIN}]:not([${OVERLAY}]) ::-webkit-scrollbar, html[${MAIN}]:not([${OVERLAY}])::-webkit-scrollbar { width: 0; height: 0; }
-    #fmess-scroll-indicator {
+    #imessenger-scroll-indicator {
       position: fixed; z-index: 2147483646; top: 0; left: 0; width: 6px; border-radius: 3px;
       background: rgba(128, 128, 128, 0.55); pointer-events: none;
       opacity: 0; transition: opacity 0.3s;
@@ -42,7 +42,7 @@
   `;
   withRoot((root) => root.append(scrollStyle));
   const indicator = document.createElement('div');
-  indicator.id = 'fmess-scroll-indicator';
+  indicator.id = 'imessenger-scroll-indicator';
   withRoot((root) => root.append(indicator));
   // When something last scrolled (the unread count waits for it to stop).
   let lastScrollAt = -Infinity;

@@ -33,7 +33,7 @@ function world() {
     w.path = `/messages/t/${chat}/`;
     w.current = box(chat);
     w.current.isConnected = true;
-    // Opening a chat puts the cursor in its message box (fMess does too).
+    // Opening a chat puts the cursor in its message box (iMessenger does too).
     w.focused = w.current;
   };
   w.open('X');
@@ -55,15 +55,15 @@ function world() {
         if (cmd === 'insertText') setTimeout(() => (target.textContent += value), 120);
       },
     },
-    FMessNotification: class { constructor(title, { body }) { w.notices.push(`${title}: ${body}`); } },
+    iMessengerNotification: class { constructor(title, { body }) { w.notices.push(`${title}: ${body}`); } },
     say: (en) => en,
     KeyboardEvent: class { constructor(type, init) { Object.assign(this, init); } },
     window: {},
   };
   const run = new Function(...Object.keys(env), `${waitFor}${reply}return window;`);
   const page = run(...Object.values(env));
-  w.reply = page.__fmessReply;
-  w.returnDraft = page.__fmessReturnDraft;
+  w.reply = page.__imessengerReply;
+  w.returnDraft = page.__imessengerReturnDraft;
   return w;
 }
 

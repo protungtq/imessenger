@@ -1,7 +1,7 @@
 use std::{env, fs, path::Path};
 
 fn main() {
-    // The script fMess runs in the Messenger page is written in parts
+    // The script iMessenger runs in the Messenger page is written in parts
     // (src/inject/), one per concern, sharing one function's scope; joined in
     // file-name order they make the script webview.rs puts in the page.
     let parts = Path::new("src/inject");
@@ -41,6 +41,10 @@ fn main() {
                 "list_themes",
                 "add_theme",
                 "remove_theme",
+                "choose_app_icon",
+                "reset_app_icon",
+                "show_download",
+                "check_for_updates",
             ])),
     )
     .expect("failed to run tauri-build");

@@ -1,13 +1,13 @@
   // A theme can draw buttons on the chat list (the Zalo look's bar down its
-  // left side) and list them in --fmess-buttons on the list: "name left top
+  // left side) and list them in --imessenger-buttons on the list: "name left top
   // size" each, comma-separated, a negative top counting from the bottom.
-  // iMessenger lights the one under the pointer (--fmess-hover-left/-top and
-  // data-fmess-hover="<name>" on the list, for a theme's label) and runs
+  // iMessenger lights the one under the pointer (--imessenger-hover-left/-top and
+  // data-imessenger-hover="<name>" on the list, for a theme's label) and runs
   // those it knows: "account" opens the account menu, as the account button
   // does, and "settings" opens iMessenger's Settings.
   const themeButtonAt = (list, x, y) => {
     const box = list.getBoundingClientRect();
-    for (const spec of getComputedStyle(list).getPropertyValue('--fmess-buttons').split(',')) {
+    for (const spec of getComputedStyle(list).getPropertyValue('--imessenger-buttons').split(',')) {
       const [name, left, top, size] = spec.trim().replace(/"/g, '').split(/\s+/);
       if (!name || !(Number(size) > 0)) continue;
       const button = { name, left: box.left + Number(left), size: Number(size) };
@@ -21,17 +21,17 @@
     'mousemove',
     (event) => {
       const list = event.target instanceof Element && event.target.closest('[role="navigation"]');
-      const unlight = (el) => (el.style.removeProperty('--fmess-hover-top'), el.style.removeProperty('cursor'), el.removeAttribute('data-fmess-hover'));
+      const unlight = (el) => (el.style.removeProperty('--imessenger-hover-top'), el.style.removeProperty('cursor'), el.removeAttribute('data-imessenger-hover'));
       if (hoveredList && hoveredList !== list) unlight(hoveredList);
       hoveredList = list || null;
       if (!list) return;
       const button = themeButtonAt(list, event.clientX, event.clientY);
       if (!button) return unlight(list);
       const box = list.getBoundingClientRect();
-      list.style.setProperty('--fmess-hover-left', `${button.left - box.left}px`);
-      list.style.setProperty('--fmess-hover-top', `${button.top - box.top}px`);
+      list.style.setProperty('--imessenger-hover-left', `${button.left - box.left}px`);
+      list.style.setProperty('--imessenger-hover-top', `${button.top - box.top}px`);
       list.style.cursor = 'pointer';
-      if (list.getAttribute('data-fmess-hover') !== button.name) list.setAttribute('data-fmess-hover', button.name);
+      if (list.getAttribute('data-imessenger-hover') !== button.name) list.setAttribute('data-imessenger-hover', button.name);
     },
     { passive: true },
   );
@@ -50,20 +50,20 @@
   );
 
   // The same for buttons a theme draws anywhere in the window (the Teams
-  // look's "…" and picture at the right of its title bar): --fmess-window-
+  // look's "…" and picture at the right of its title bar): --imessenger-window-
   // buttons on :root, "name left top size" in px from the window's top left,
   // a negative left counting from the right edge and a negative top from the
   // bottom (left = width + left - size). iMessenger lights the one under the
-  // pointer (--fmess-window-hover-left/-top and data-fmess-window-hover on
+  // pointer (--imessenger-window-hover-left/-top and data-imessenger-window-hover on
   // :root) and runs "account" and "settings" as above; the account menu
   // opens under the button, kept inside the window (about 200px wide).
   // "sidebar" folds the theme's sidebar (the Teams look's app bar) away and
-  // back: data-fmess-sidebar-collapsed on <html>, kept for next time, for
+  // back: data-imessenger-sidebar-collapsed on <html>, kept for next time, for
   // the theme to fold it. A press there doesn't drag the window, though the
   // title strip is under it.
   // The list is read again at most once a second, not on every move.
-  const SIDEBAR_COLLAPSED = 'data-fmess-sidebar-collapsed';
-  const SIDEBAR_COLLAPSED_KEY = 'fmess.sidebarCollapsed';
+  const SIDEBAR_COLLAPSED = 'data-imessenger-sidebar-collapsed';
+  const SIDEBAR_COLLAPSED_KEY = 'imessenger.sidebarCollapsed';
   try {
     if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === '1') withRoot((root) => root.setAttribute(SIDEBAR_COLLAPSED, ''));
   } catch {}
@@ -76,7 +76,7 @@
   let windowButtons = { at: 0, specs: [] };
   const windowButtonAt = (x, y) => {
     if (performance.now() - windowButtons.at > 1000) {
-      const value = getComputedStyle(document.documentElement).getPropertyValue('--fmess-window-buttons');
+      const value = getComputedStyle(document.documentElement).getPropertyValue('--imessenger-window-buttons');
       windowButtons = { at: performance.now(), specs: value.split(',').map((spec) => spec.trim().replace(/"/g, '').split(/\s+/)) };
     }
     for (const [name, left, top, size] of windowButtons.specs) {
@@ -97,10 +97,10 @@
       if (lit === litWindowButton) return;
       litWindowButton = lit;
       const root = document.documentElement;
-      if (!button) return (root.style.removeProperty('--fmess-window-hover-top'), root.style.removeProperty('cursor'), root.removeAttribute('data-fmess-window-hover'));
-      root.style.setProperty('--fmess-window-hover-left', `${button.left}px`);
-      root.style.setProperty('--fmess-window-hover-top', `${button.top}px`);
-      root.setAttribute('data-fmess-window-hover', button.name);
+      if (!button) return (root.style.removeProperty('--imessenger-window-hover-top'), root.style.removeProperty('cursor'), root.removeAttribute('data-imessenger-window-hover'));
+      root.style.setProperty('--imessenger-window-hover-left', `${button.left}px`);
+      root.style.setProperty('--imessenger-window-hover-top', `${button.top}px`);
+      root.setAttribute('data-imessenger-window-hover', button.name);
       root.style.cursor = 'pointer';
     },
     { passive: true },
@@ -127,14 +127,14 @@
     true,
   );
 
-  // A theme can also ask for a search box of its own (--fmess-search-box: 1
+  // A theme can also ask for a search box of its own (--imessenger-search-box: 1
   // on :root; the Teams look's is in its title bar): a button that focuses
   // Messenger's search field, as ⌘K does, for the theme to show. It carries
   // the field's placeholder, so it reads in Facebook's language.
-  const SEARCH_BOX = 'fmess-search-box';
+  const SEARCH_BOX = 'imessenger-search-box';
   setInterval(() => {
     let box = document.getElementById(SEARCH_BOX);
-    if (getComputedStyle(document.documentElement).getPropertyValue('--fmess-search-box').trim() !== '1') return box?.remove();
+    if (getComputedStyle(document.documentElement).getPropertyValue('--imessenger-search-box').trim() !== '1') return box?.remove();
     if (!box) {
       box = document.createElement('div');
       box.id = SEARCH_BOX;
@@ -150,10 +150,10 @@
   }, 500);
 
   // A theme can put quick reactions in a message's hover actions (the Teams
-  // look's emoji row): --fmess-quick-reactions on :root, emoji as codepoints
+  // look's emoji row): --imessenger-quick-reactions on :root, emoji as codepoints
   // ("1f44d 2764 1f606 1f62e"). iMessenger adds them first in the hovered
-  // message's actions, in a .fmess-quick-reactions group of buttons
-  // (.fmess-quick-reaction, data-emoji) holding Messenger's own picture of
+  // message's actions, in a .imessenger-quick-reactions group of buttons
+  // (.imessenger-quick-reaction, data-emoji) holding Messenger's own picture of
   // the emoji, so themes that swap Messenger's emoji swap these too. A click
   // opens Messenger's reaction picker for that message (its react button,
   // found by its icon) and picks the same emoji there, which also takes the
@@ -178,10 +178,10 @@
   let quickReactions = { at: 0, list: [] };
   const quickReactionList = () => {
     if (performance.now() - quickReactions.at > 1000) {
-      const value = getComputedStyle(document.documentElement).getPropertyValue('--fmess-quick-reactions');
+      const value = getComputedStyle(document.documentElement).getPropertyValue('--imessenger-quick-reactions');
       const list = value.trim().toLowerCase().split(/\s+/).filter((emoji) => /^[0-9a-f_]+$/.test(emoji));
       // Another theme (or none): the buttons added for the last one go.
-      if (list.join() !== quickReactions.list.join()) for (const group of document.querySelectorAll('.fmess-quick-reactions')) group.remove();
+      if (list.join() !== quickReactions.list.join()) for (const group of document.querySelectorAll('.imessenger-quick-reactions')) group.remove();
       quickReactions = { at: performance.now(), list };
     }
     return quickReactions.list;
@@ -198,14 +198,14 @@
     let item = react;
     while (item.parentElement && item.parentElement.querySelectorAll('[role="button"]').length === 1) item = item.parentElement;
     const actions = item.parentElement;
-    if (!actions || actions.querySelector(':scope > .fmess-quick-reactions')) return;
+    if (!actions || actions.querySelector(':scope > .imessenger-quick-reactions')) return;
     learnEmoji(row);
     const group = document.createElement('div');
-    group.className = 'fmess-quick-reactions';
+    group.className = 'imessenger-quick-reactions';
     group.setAttribute('role', 'group');
     for (const emoji of list) {
       const button = document.createElement('div');
-      button.className = 'fmess-quick-reaction';
+      button.className = 'imessenger-quick-reaction';
       button.setAttribute('role', 'button');
       button.setAttribute('tabindex', '0');
       button.dataset.emoji = emoji;
@@ -250,7 +250,7 @@
     'keydown',
     (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
-      const button = event.target instanceof Element && event.target.closest('#fmess-search-box, .fmess-quick-reaction');
+      const button = event.target instanceof Element && event.target.closest('#imessenger-search-box, .imessenger-quick-reaction');
       if (!button) return;
       event.preventDefault();
       button.click();
@@ -260,16 +260,16 @@
   document.addEventListener(
     'click',
     (event) => {
-      const button = event.target instanceof Element && event.target.closest('.fmess-quick-reaction');
+      const button = event.target instanceof Element && event.target.closest('.imessenger-quick-reaction');
       const row = button?.closest('[data-scope="messages_table"]');
       if (!row) return;
       event.preventDefault();
       event.stopPropagation();
       pickReaction(row, button.dataset.emoji).catch(() => {});
       // The actions close once a reaction is picked, as Messenger's own do:
-      // the row carries data-fmess-reacted until the pointer leaves it.
-      row.setAttribute('data-fmess-reacted', '');
-      row.addEventListener('mouseleave', () => row.removeAttribute('data-fmess-reacted'), { once: true });
+      // the row carries data-imessenger-reacted until the pointer leaves it.
+      row.setAttribute('data-imessenger-reacted', '');
+      row.addEventListener('mouseleave', () => row.removeAttribute('data-imessenger-reacted'), { once: true });
     },
     true,
   );

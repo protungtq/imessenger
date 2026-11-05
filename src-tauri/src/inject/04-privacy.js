@@ -18,9 +18,9 @@
   // iMessenger can't tell (the small "seen" pictures) as a grey circle. Pictures
   // there are hidden until iMessenger has looked at them, so a photo never shows
   // for a moment; those that aren't people's (photos sent) are let through.
-  const AVATARS_HIDDEN = 'data-fmess-hide-avatars';
-  const AVATAR = 'data-fmess-avatar';
-  const AVATAR_PLACES = ':is([role="navigation"] [role="row"], [data-fmess-ui="chat-header"], [role="log"], [data-fmess-ui="details"])';
+  const AVATARS_HIDDEN = 'data-imessenger-hide-avatars';
+  const AVATAR = 'data-imessenger-avatar';
+  const AVATAR_PLACES = ':is([role="navigation"] [role="row"], [data-imessenger-ui="chat-header"], [role="log"], [data-imessenger-ui="details"])';
   const AVATAR_COLOURS = ['#c4314b', '#e3008c', '#8764b8', '#4f6bed', '#0078d4', '#038387', '#498205', '#ca5010'];
   const avatarStyle = document.createElement('style');
   avatarStyle.textContent = `
@@ -48,7 +48,7 @@
     if (!box.width || Math.abs(box.width - box.height) > 2 || box.width > 100) return box.width ? null : undefined;
     const row = picture.closest('[role="navigation"] [role="row"]');
     if (row) return picture.tagName === 'IMG' ? row.querySelector('a[role="link"] span[dir="auto"]')?.textContent ?? '' : picture.closest('svg')?.getAttribute('aria-label') ?? '';
-    const header = picture.closest('[data-fmess-ui="chat-header"]');
+    const header = picture.closest('[data-imessenger-ui="chat-header"]');
     if (header) return header.querySelector('h1, h2, h3')?.textContent ?? '';
     if (picture.closest('[role="log"]')) return box.width > 40 ? null : box.width > 20 ? picture.getAttribute('alt') ?? '' : '';
     return picture.closest('svg')?.getAttribute('aria-label') ?? picture.getAttribute('alt') ?? '';
@@ -60,16 +60,16 @@
     const url = initialPicture(name);
     if (picture.tagName === 'IMG') picture.style.setProperty('content', `url("${url}")`, 'important');
     else {
-      if (!picture.hasAttribute('data-fmess-href')) picture.setAttribute('data-fmess-href', picture.getAttribute('href') ?? picture.getAttribute('xlink:href') ?? '');
+      if (!picture.hasAttribute('data-imessenger-href')) picture.setAttribute('data-imessenger-href', picture.getAttribute('href') ?? picture.getAttribute('xlink:href') ?? '');
       picture.setAttribute('href', url);
     }
     picture.setAttribute(AVATAR, 'initial');
   };
   const uncoverPicture = (picture) => {
     if (picture.tagName === 'IMG') picture.style.removeProperty('content');
-    else if (picture.hasAttribute('data-fmess-href')) {
-      picture.setAttribute('href', picture.getAttribute('data-fmess-href'));
-      picture.removeAttribute('data-fmess-href');
+    else if (picture.hasAttribute('data-imessenger-href')) {
+      picture.setAttribute('href', picture.getAttribute('data-imessenger-href'));
+      picture.removeAttribute('data-imessenger-href');
     }
     picture.removeAttribute(AVATAR);
   };
@@ -88,7 +88,7 @@
       if (type !== 'attributes' || !target.hasAttribute?.(AVATAR)) continue;
       const source = target.getAttribute('href') ?? target.getAttribute('src') ?? '';
       if (source.startsWith('data:image/svg+xml')) continue;
-      if (target.hasAttribute('data-fmess-href')) target.setAttribute('data-fmess-href', source);
+      if (target.hasAttribute('data-imessenger-href')) target.setAttribute('data-imessenger-href', source);
       target.removeAttribute(AVATAR);
     }
     pictureFrame ||= requestAnimationFrame(() => ((pictureFrame = 0), coverPicturesIn(document)));

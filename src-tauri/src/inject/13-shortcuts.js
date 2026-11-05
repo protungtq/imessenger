@@ -26,7 +26,7 @@
     },
   };
   // Also called from iMessenger's menu bar on macOS.
-  window.__fmessShortcut = (name, arg) => onChatsPage() && shortcuts[name]?.(arg);
+  window.__imessengerShortcut = (name, arg) => onChatsPage() && shortcuts[name]?.(arg);
   // The menu bar's shortcuts (menu.rs), by key, with Ctrl.
   const MENU_KEYS = {
     Comma: 'settings',
@@ -42,6 +42,21 @@
   };
   // With Ctrl+Shift (Ctrl+Shift+= is Ctrl++ on most keyboards).
   const MENU_SHIFT_KEYS = { KeyH: 'messages', Equal: 'zoom-in' };
+  // Escape cancels a voice clip being recorded or replayed, like its X button
+  // (marked by 09-marks). Pictures and dialogs keep Escape for themselves.
+  window.addEventListener(
+    'keydown',
+    (event) => {
+      if (event.key !== 'Escape' || event.isComposing || event.defaultPrevented) return;
+      if (document.querySelector('[role="dialog"], [role="menu"]')) return;
+      const cancel = [...document.querySelectorAll('[data-imessenger-ui="record-cancel"]')].find(isVisible);
+      if (!cancel) return;
+      event.preventDefault();
+      event.stopPropagation();
+      cancel.click();
+    },
+    true,
+  );
   window.addEventListener(
     'keydown',
     (event) => {

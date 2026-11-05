@@ -9,7 +9,7 @@
   <!-- Communication Notifications (the sender's picture in notifications),
        granted by the provisioning profile in signing/. -->
   <key>com.apple.application-identifier</key>
-  <string>8A73ZAHQBD.io.github.toanbku.fmess</string>
+  <string>8A73ZAHQBD.asia.so1.imessenger</string>
   <key>com.apple.developer.team-identifier</key>
   <string>8A73ZAHQBD</string>
   <key>com.apple.developer.usernotifications.communication</key>

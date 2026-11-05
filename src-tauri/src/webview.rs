@@ -11,12 +11,14 @@ use tauri::{
 
 use crate::{
     i18n::{self, pick, Lang},
-    icon, links,
+    downloads, icon, links,
     settings::{self, Settings},
     AUTOSTART_ARG, MAIN_WINDOW,
 };
 
 pub const SETTINGS_WINDOW: &str = "settings";
+/// Labels of the windows pages open (calls, the photo viewer): popup-1, popup-2...
+pub const POPUP_PREFIX: &str = "popup-";
 
 /// Meta shut messenger.com down in April 2026; chats on the web live here now.
 const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
@@ -24,7 +26,9 @@ const MESSAGES_URL: &str = "https://www.facebook.com/messages/";
 /// The page script, joined from src/inject/ by build.rs.
 const INJECTED_SCRIPT: &str = include_str!(concat!(env!("OUT_DIR"), "/inject.js"));
 
-/// The app icon, shown on iMessenger's loading screen in place of Facebook's.
+/// The app icon, shown on iMessenger's loading screen in place of Facebook's, unless
+/// one was chosen in Settings. The window's script is set as it opens, so a
+/// picture chosen later shows there from iMessenger's next start.
 const SPLASH_LOGO: &[u8] = include_bytes!("../icons/128x128@2x.png");
 const SPLASH_DARK: tauri::window::Color = tauri::window::Color(28, 28, 29, 255);
 const SPLASH_LIGHT: tauri::window::Color = tauri::window::Color(255, 255, 255, 255);
@@ -42,7 +46,7 @@ pub fn messages_url() -> Url {
 pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> tauri::Result<()> {
     let launched_at_login = std::env::args().any(|arg| arg == AUTOSTART_ARG);
     let builder = WebviewWindowBuilder::new(app, MAIN_WINDOW, WebviewUrl::External(messages_url()))
-        .title("iMessenger")
+        .title(settings.app_name())
         .inner_size(1100.0, 760.0)
         .min_inner_size(420.0, 520.0)
         .visible(!(launched_at_login && settings.start_hidden))
@@ -71,11 +75,55 @@ pub fn create_main_window<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .hidden_title(true);
     let window = configure(builder, app, MAIN_WINDOW).build()?;
+    #[cfg(target_os = "macos")]
+    draw_at_screen_rate(&window);
+    #[cfg(windows)]
+    allow_pinch(&window);
     if settings.zoom != 1.0 {
         let _ = window.set_zoom(settings.zoom);
     }
     retry_until_loaded(window);
     Ok(())
+}
+
+/// WebKit draws a page at most about 60 times a second, even on a 120 Hz
+/// (ProMotion) screen where Chrome draws 120, so scrolling and animations
+/// looked less smooth than in a browser. Safari's Develop menu turns this off
+/// (Feature Flags: "Prefer Page Rendering Updates near 60fps"); iMessenger turns it
+/// off too, through the same switch, where this WebKit has it.
+#[cfg(target_os = "macos")]
+fn draw_at_screen_rate<R: Runtime>(window: &tauri::WebviewWindow<R>) {
+    use objc2::{class, msg_send, runtime::AnyObject, sel};
+    use objc2_foundation::NSString;
+
+    let _ = window.with_webview(|webview| {
+        let view = webview.inner().cast::<AnyObject>();
+        // SAFETY: WebKit's own switches, looked for before use; on the main thread.
+        unsafe {
+            let listed: bool = msg_send![class!(WKPreferences), respondsToSelector: sel!(_features)];
+            if !listed {
+                return;
+            }
+            let features: *mut AnyObject = msg_send![class!(WKPreferences), _features];
+            let count: usize = msg_send![features, count];
+            let wanted = NSString::from_str("PreferPageRenderingUpdatesNear60FPSEnabled");
+            for index in 0..count {
+                let feature: *mut AnyObject = msg_send![features, objectAtIndex: index];
+                let key: *mut AnyObject = msg_send![feature, key];
+                let found: bool = msg_send![key, isEqualToString: &*wanted];
+                if !found {
+                    continue;
+                }
+                let configuration: *mut AnyObject = msg_send![view, configuration];
+                let preferences: *mut AnyObject = msg_send![configuration, preferences];
+                let settable: bool = msg_send![preferences, respondsToSelector: sel!(_setEnabled:forFeature:)];
+                if settable {
+                    let _: () = msg_send![preferences, _setEnabled: false, forFeature: feature];
+                }
+                return;
+            }
+        }
+    });
 }
 
 /// When the first load fails, as at login before the Mac is online, macOS's
@@ -117,7 +165,7 @@ pub fn open_settings_window<R: Runtime>(app: &AppHandle<R>) {
             .title(settings_title(lang))
             // So the page is in its language from the first frame, before it
             // has asked for the settings.
-            .initialization_script(format!("window.__fmessLang = {};", serde_json::json!(lang)))
+            .initialization_script(format!("window.__imessengerLang = {};", serde_json::json!(lang)))
             .inner_size(640.0, 780.0)
             .min_inner_size(560.0, 560.0)
             .resizable(true)
@@ -150,9 +198,37 @@ pub fn set_viewer_open<R: Runtime>(app: AppHandle<R>, open: bool) {
         };
         let _ = window.set_title_bar_style(style);
         set_title_visible(&window, open);
+        focus_page(&window);
     }
     #[cfg(not(target_os = "macos"))]
     let _ = (app, open);
+}
+
+/// A touchpad pinch reaches the page, as Ctrl + wheel for the photo viewer's
+/// zoom (12-viewer.js), only while WebView2's pinch zoom is on. Tauri turns it
+/// off along with Ctrl + wheel and Ctrl + -/= (zoom hotkeys), and WebView2
+/// takes a change to it only at the next top-level navigation: turning it on
+/// as the viewer opened did nothing, Messenger being one page. So it is on from
+/// the start, and the window loads its first page again for that, right after
+/// it opens. Ctrl + wheel and Ctrl + -/= stay off (IsZoomControlEnabled); in
+/// the viewer, its zoom takes every Ctrl + wheel, a pinch's too.
+#[cfg(windows)]
+fn allow_pinch<R: Runtime>(window: &tauri::WebviewWindow<R>) {
+    use webview2_com::Microsoft::Web::WebView2::Win32::ICoreWebView2Settings5;
+    use windows_core::{Interface, HSTRING};
+
+    let url = messages_url().to_string();
+    let _ = window.with_webview(move |webview| unsafe {
+        let Ok(core) = webview.controller().CoreWebView2() else {
+            return;
+        };
+        let Ok(settings5) = core.Settings().and_then(|settings| settings.cast::<ICoreWebView2Settings5>()) else {
+            return;
+        };
+        if settings5.SetIsPinchZoomEnabled(true).is_ok() {
+            let _ = core.Navigate(&HSTRING::from(url));
+        }
+    });
 }
 
 /// Shows or hides "iMessenger" in the title bar; Tauri only sets this at creation.
@@ -173,6 +249,19 @@ fn set_title_visible<R: Runtime>(window: &tauri::WebviewWindow<R>, visible: bool
         } else {
             NSWindowTitleVisibility::Hidden
         });
+    });
+}
+
+/// Changing the title bar style leaves the window without a first responder,
+/// so Escape and the arrow keys didn't reach the viewer until it was clicked.
+#[cfg(target_os = "macos")]
+fn focus_page<R: Runtime>(window: &tauri::WebviewWindow<R>) {
+    use objc2_app_kit::{NSView, NSWindow};
+
+    let _ = window.with_webview(|webview| {
+        // SAFETY: Tauri gives the live WKWebView and NSWindow, on the main thread.
+        let (view, ns_window) = unsafe { (&*(webview.inner() as *const NSView), &*(webview.ns_window() as *const NSWindow)) };
+        ns_window.makeFirstResponder(Some(view));
     });
 }
 
@@ -208,11 +297,13 @@ fn configure<'a, R: Runtime, M: Manager<R>>(
                 close_popup(&navigation_app, &label);
                 return false;
             }
-            links::allow_navigation(&navigation_app, url)
+            let allowed = links::allow_navigation(&navigation_app, url);
+            #[cfg(debug_assertions)]
+            crate::probe::log_navigation(&label, url, allowed);
+            allowed
         })
         .on_new_window(move |url, features| open_popup(&popup_app, url, features))
-        // Without a download handler, macOS cancels every download.
-        .on_download(|_, _| true)
+        .on_download(downloads::handle)
         // Tauri takes files dropped on the window for itself (as its own
         // events) and keeps them from the page, so a file or screenshot
         // dragged into a chat did nothing; Messenger takes them as in a browser.
@@ -249,20 +340,29 @@ pub fn prefer_overlay_scrollbars() {
 fn initialization_script<R: Runtime>(app: &AppHandle<R>) -> String {
     use base64::Engine;
 
+    // Debug builds: IMESSENGER_NO_INJECT=1 leaves the page as WebKit shows it, to
+    // measure what iMessenger's own script costs.
+    if cfg!(debug_assertions) && std::env::var_os("IMESSENGER_NO_INJECT").is_some() {
+        return String::new();
+    }
+
     let settings = settings::current(app);
     let dark = match settings::messenger_theme(settings.messenger_dark_mode.as_deref()) {
         Some(tauri::Theme::Dark) => "true",
         Some(_) => "false",
         None => "null",
     };
-    let logo = base64::engine::general_purpose::STANDARD.encode(SPLASH_LOGO);
+    let custom = icon::custom(app);
+    let logo = custom.as_deref().unwrap_or(SPLASH_LOGO);
+    let logo_type = if logo.starts_with(&[0, 0, 1, 0]) { "image/x-icon" } else { "image/png" };
+    let logo = base64::engine::general_purpose::STANDARD.encode(logo);
     let debug = cfg!(debug_assertions);
     format!(
-        "window.__fmessTitleBarInset = {TITLE_BAR_INSET};\n\
-         window.__fmessDebug = {debug};\n\
-         window.__fmessSettings = {};\n\
-         window.__fmessDark = {dark};\n\
-         window.__fmessSplashLogo = 'data:image/png;base64,{logo}';\n\
+        "window.__imessengerTitleBarInset = {TITLE_BAR_INSET};\n\
+         window.__imessengerDebug = {debug};\n\
+         window.__imessengerSettings = {};\n\
+         window.__imessengerDark = {dark};\n\
+         window.__imessengerSplashLogo = 'data:{logo_type};base64,{logo}';\n\
          {INJECTED_SCRIPT}",
         settings::page_settings(app, &settings)
     )
@@ -274,14 +374,18 @@ fn open_popup<R: Runtime>(
     features: NewWindowFeatures,
 ) -> NewWindowResponse<R> {
     if !links::opens_in_app(&url) {
+        #[cfg(debug_assertions)]
+        eprintln!("[popup] opened externally {}", crate::probe::loggable(&url));
         links::open_external(app, &url);
         return NewWindowResponse::Deny;
     }
+    #[cfg(debug_assertions)]
+    eprintln!("[popup] in app {}", crate::probe::loggable(&url));
     static NEXT_POPUP: AtomicUsize = AtomicUsize::new(1);
-    let label = format!("popup-{}", NEXT_POPUP.fetch_add(1, Ordering::Relaxed));
+    let label = format!("{POPUP_PREFIX}{}", NEXT_POPUP.fetch_add(1, Ordering::Relaxed));
     let size = features.size().map(|size| (size.width, size.height));
     let mut builder = WebviewWindowBuilder::new(app, &label, WebviewUrl::External(url))
-        .title("iMessenger")
+        .title(settings::current(app).app_name())
         .window_features(features);
     if let Some((x, y)) = centred_on_main_window(app, size) {
         builder = builder.position(x, y);
@@ -317,7 +421,7 @@ fn centred_on_main_window<R: Runtime>(app: &AppHandle<R>, size: Option<(f64, f64
 
 /// inject.js sends `window.close()` here, because WKWebView ignores it.
 fn is_close_window_url(url: &Url) -> bool {
-    url.scheme() == "fmess" && url.host_str() == Some("close-window")
+    url.scheme() == "imessenger" && url.host_str() == Some("close-window")
 }
 
 fn close_popup<R: Runtime>(app: &AppHandle<R>, label: &str) {

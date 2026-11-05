@@ -2,7 +2,7 @@
   const loadModules = (names) =>
     new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error(`could not load ${names.join(', ')}`)), 10000);
-      window.require('Bootloader').loadModules(names, () => (clearTimeout(timer), resolve()), 'fmess');
+      window.require('Bootloader').loadModules(names, () => (clearTimeout(timer), resolve()), 'imessenger');
     });
   const moduleFunction = (module) => (typeof module === 'function' ? module : module.default);
   // Lightspeed keeps 64-bit numbers as [high, low], and keys rows by their id
@@ -22,7 +22,7 @@
   // The rest of Messenger's Preferences (⋯ → Preferences) belong to the
   // account as well. iMessenger's Settings show them: the page reads them here
   // and reports them when they may have changed, and changes them the way
-  // that dialog does (__fmessSetMessengerPref).
+  // that dialog does (__imessengerSetMessengerPref).
   // Some of the modules involved come only with the code of that dialog, which
   // Messenger loads when it first opens; iMessenger loads it the same way.
   const loadPreferences = async () => {
@@ -66,7 +66,7 @@
   // Whether the preferences could be read.
   // Whether Messenger is dark: its own setting, or the system's when it follows
   // the system (Facebook then marks only parts of the page). Themes key their
-  // dark colours on it: html[data-fmess-dark].
+  // dark colours on it: html[data-imessenger-dark].
   // Facebook's own mark on <html>, when it has one, is what the page shows:
   // it comes first, since the setting is read later (until then iMessenger has
   // only the one it saved, which the account may have changed since), and
@@ -79,9 +79,9 @@
       ? true
       : marks?.contains('__fb-light-mode')
         ? false
-        : setting === 'ENABLED' || (setting === 'DISABLED' ? false : setting === 'USE_SYSTEM' ? systemDark.matches : (window.__fmessDark ?? systemDark.matches));
+        : setting === 'ENABLED' || (setting === 'DISABLED' ? false : setting === 'USE_SYSTEM' ? systemDark.matches : (window.__imessengerDark ?? systemDark.matches));
     withRoot((root) => {
-      if (root.hasAttribute('data-fmess-dark') !== Boolean(dark)) root.toggleAttribute('data-fmess-dark', Boolean(dark));
+      if (root.hasAttribute('data-imessenger-dark') !== Boolean(dark)) root.toggleAttribute('data-imessenger-dark', Boolean(dark));
     });
   };
   syncDark();
@@ -120,12 +120,76 @@
     return until < 0 || until * 1000 > Date.now();
   };
   // Messenger still plays its message sound during Do Not Disturb; iMessenger
-  // keeps it quiet. Its sounds are <audio> files (SoundPlayer); call audio is
-  // a stream, and ringing loops, so calls still ring.
+  // keeps it quiet. Its sounds are <audio> files played by SoundPlayer (see
+  // soundPlayerCalls); call audio is a stream, and ringing loops, so calls
+  // still ring.
+  //
+  // And WebKit offers any media element that has played as the system's Now
+  // Playing (Control Center, the media keys): "(3) Messenger | Facebook" with
+  // a play button, which stayed there after every message sound (#22). The
+  // sounds are short files, so iMessenger plays them through Web Audio instead,
+  // which isn't offered; if that fails, the element plays as before. A pause
+  // (SoundPlayer's pause and stop) stops what it started, even a sound still
+  // loading.
   const nativePlay = HTMLMediaElement.prototype.play;
+  const nativePause = HTMLMediaElement.prototype.pause;
+  let soundContext = null;
+  let soundsPlaying = 0;
+  const soundBuffers = new Map();
+  const soundSources = new WeakMap();
+  const soundPauses = new WeakMap();
+  const pausesOf = (element) => soundPauses.get(element) ?? 0;
+  const playSound = async (element) => {
+    const pauses = pausesOf(element);
+    const src = element.currentSrc || element.src;
+    soundContext ??= new AudioContext();
+    let buffer = soundBuffers.get(src);
+    if (!buffer) {
+      buffer = fetch(src)
+        .then((response) => (response.ok ? response.arrayBuffer() : Promise.reject(new Error(`HTTP ${response.status}`))))
+        .then((data) => soundContext.decodeAudioData(data));
+      soundBuffers.set(src, buffer);
+      buffer.catch(() => soundBuffers.delete(src));
+    }
+    // A context the page may not start yet would wait for a click forever.
+    const awake = Promise.race([soundContext.resume(), new Promise((resolve) => setTimeout(resolve, 1000))]);
+    const [data] = await Promise.all([buffer, awake]);
+    if (pausesOf(element) !== pauses) return;
+    if (soundContext.state !== 'running') throw new Error(`audio ${soundContext.state}`);
+    const source = soundContext.createBufferSource();
+    const gain = soundContext.createGain();
+    source.buffer = data;
+    gain.gain.value = element.muted ? 0 : element.volume;
+    source.connect(gain).connect(soundContext.destination);
+    let sources = soundSources.get(element);
+    if (!sources) soundSources.set(element, (sources = new Set()));
+    sources.add(source);
+    soundsPlaying += 1;
+    // Between sounds the context sleeps, so it doesn't keep the audio
+    // device busy.
+    source.onended = () => {
+      sources.delete(source);
+      if (--soundsPlaying === 0) soundContext.suspend().catch(() => {});
+    };
+    source.start();
+  };
   HTMLMediaElement.prototype.play = function (...args) {
-    if (this instanceof HTMLAudioElement && this.src && !this.loop && isMuted()) return Promise.resolve();
-    return nativePlay.apply(this, args);
+    const isSound = soundPlayerCalls > 0 && this instanceof HTMLAudioElement && this.src && !this.loop && !this.srcObject;
+    if (!isSound) return nativePlay.apply(this, args);
+    if (isMuted()) return Promise.resolve();
+    const pauses = pausesOf(this);
+    return playSound(this).catch(() => (pausesOf(this) === pauses ? nativePlay.apply(this, args) : undefined));
+  };
+  HTMLMediaElement.prototype.pause = function (...args) {
+    if (this instanceof HTMLAudioElement) {
+      soundPauses.set(this, pausesOf(this) + 1);
+      for (const source of soundSources.get(this) ?? []) {
+        try {
+          source.stop();
+        } catch {}
+      }
+    }
+    return nativePause.apply(this, args);
   };
   // Do Not Disturb for ms milliseconds; -1 until turned off, 0 turns it off.
   const muteFor = async (ms) => {
@@ -141,15 +205,15 @@
     writer.updateMute(currentUserId(), ms === 0 ? 0 : I64.to_float(until));
   };
   // Called by iMessenger's Settings.
-  window.__fmessSetMessengerPref = async (name, value) => {
+  window.__imessengerSetMessengerPref = async (name, value) => {
     try {
       if (name === 'soundsOn') {
         await loadPreferences();
         await loadModules(['CometRelayEnvironment']);
         await window.require('MWChatChangeSoundsSettingMutation').commit(window.require('CometRelayEnvironment'), { sounds_on: Boolean(value) });
       } else if (name === 'darkMode') {
-        if (window.__fmessSetDarkMode) {
-          window.__fmessSetDarkMode(value);
+        if (window.__imessengerSetDarkMode) {
+          window.__imessengerSetDarkMode(value);
         } else {
           // Saved, but the page keeps its look until it reloads.
           await loadModules(['CometDarkMode']);
@@ -166,7 +230,7 @@
   };
   // Opens Messenger's own Preferences, or its Active Status page, for what
   // iMessenger's Settings leave to it (Active Status keeps lists of people).
-  window.__fmessOpenMessengerPreferences = async (section) => {
+  window.__imessengerOpenMessengerPreferences = async (section) => {
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const find = async (test) => {
       for (let waited = 0; waited < 8000; waited += 200) {
@@ -178,7 +242,7 @@
     };
     let header = document.querySelector('a[href="/messages/new/"]');
     while (header && !header.querySelector('h1')) header = header.parentElement;
-    header && [...header.querySelectorAll('[role="button"]')].find((el) => !el.closest('a') && el.id !== 'fmess-account')?.click();
+    header && [...header.querySelectorAll('[role="button"]')].find((el) => !el.closest('a') && el.id !== 'imessenger-account')?.click();
     // Preferences heads the ⋯ menu.
     const item = await find(() => {
       const items = [...document.querySelectorAll('[role="menuitem"], [role="menu"] [role="button"]')];

@@ -12,7 +12,7 @@ static UNREAD: AtomicI64 = AtomicI64::new(0);
 #[tauri::command]
 pub fn set_unread_count<R: Runtime>(app: tauri::AppHandle<R>, count: i64) {
     #[cfg(debug_assertions)]
-    eprintln!("[fmess] unread chats: {count}");
+    eprintln!("[imessenger] unread chats: {count}");
     UNREAD.store(count, Ordering::Relaxed);
     if let Some(window) = app.get_webview_window(MAIN_WINDOW) {
         refresh(&window);

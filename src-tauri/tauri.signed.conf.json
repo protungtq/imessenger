@@ -5,7 +5,7 @@
       "signingIdentity": "Developer ID Application: Vi Nguyen Trieu (8A73ZAHQBD)",
       "entitlements": "Entitlements.signed.plist",
       "files": {
-        "embedded.provisionprofile": "signing/fMess_Developer_ID.provisionprofile"
+        "embedded.provisionprofile": "signing/iMessenger_Developer_ID.provisionprofile"
       }
     }
   }

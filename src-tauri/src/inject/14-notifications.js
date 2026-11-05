@@ -19,6 +19,11 @@
   // Sender and chat of a message notification, by message id (Messenger's
   // tag), read as MWDesktopNotifications does (see MODULE_PATCHES).
   const messageDetails = new Map();
+  // The chat and time of each message Messenger is about to notify about, by
+  // message id; and, per chat, the newest message it did notify about, which
+  // iMessenger's own notification (notifyNewestChat) then leaves alone.
+  const pageMessages = new Map();
+  const pageNotifiedUpTo = new Map();
   // A message sent over LATE_MS ago, or in a chat read past it (on another
   // device, say), needs no notification.
   async function isOldNews(db, message) {
@@ -90,7 +95,7 @@
       group: details.group && { name: details.group.name, picture: groupPicture ?? null },
     };
     return invoke('notify', {
-      id: notification.fmessId,
+      id: notification.imessengerId,
       title: notification.title,
       body: notification.body,
       icon: icon ?? null,
@@ -99,10 +104,15 @@
     });
   };
 
-  class FMessNotification extends EventTarget {
+  class iMessengerNotification extends EventTarget {
     static get permission() {
       return 'granted';
     }
+
+    // tauri-plugin-notification's page script sets it once it has asked
+    // iMessenger (is_permission_granted), after this class took its place; in
+    // strict code a property with no setter would throw.
+    static set permission(_) {}
 
     static requestPermission(callback) {
       callback?.('granted');
@@ -124,34 +134,38 @@
         if (shownTags.has(this.tag)) return;
         shownTags.add(this.tag);
         if (shownTags.size > 500) shownTags.delete(shownTags.values().next().value);
+        const message = pageMessages.get(String(this.tag));
+        if (message && !raisingFallback && message.sent > (pageNotifiedUpTo.get(message.thread) ?? 0)) {
+          pageNotifiedUpTo.set(message.thread, message.sent);
+        }
       }
       // The native side takes an i32 id.
-      this.fmessId = nextId++ % 0x7fffffff;
-      shown.set(this.fmessId, this);
+      this.imessengerId = nextId++ % 0x7fffffff;
+      shown.set(this.imessengerId, this);
       if (shown.size > 100) shown.delete(shown.keys().next().value);
       sendNotification(this).then(
-        () => this.fmessFire('show'),
-        () => this.fmessFire('error'),
+        () => this.imessengerFire('show'),
+        () => this.imessengerFire('error'),
       );
     }
 
     close() {
-      if (shown.delete(this.fmessId)) this.fmessFire('close');
+      if (shown.delete(this.imessengerId)) this.imessengerFire('close');
     }
 
-    fmessFire(type) {
+    imessengerFire(type) {
       const event = new Event(type);
       this[`on${type}`]?.call(this, event);
       this.dispatchEvent(event);
     }
   }
 
-  window.Notification = FMessNotification;
+  window.Notification = iMessengerNotification;
 
   // Some code paths notify through a service worker registration instead.
   if (window.ServiceWorkerRegistration) {
     ServiceWorkerRegistration.prototype.showNotification = function (title, options) {
-      new FMessNotification(title, options);
+      new iMessengerNotification(title, options);
       return Promise.resolve();
     };
   }
@@ -195,6 +209,44 @@
     const name = texts.findIndex((part) => part.visible);
     return name >= 0 && texts.slice(name + 1).some((part) => !part.visible);
   };
+  // The chat rows that count as unread, each chat once. Messenger decides, by
+  // the test behind a row's "Unread message:" (MWPIsThreadUnread), and muted
+  // chats are left out, as the badge on Facebook's top bar leaves them out
+  // (MWChatBadgeCountUpdates): a busy muted group would otherwise keep the
+  // Dock badge up. A chat missing from Messenger's copy falls back to the
+  // row's hidden text.
+  const isMutedChat = (chat) => {
+    const until = int64(chat.muteExpireTimeMs);
+    return until === -1n || until > BigInt(Math.floor(serverNow()));
+  };
+  const unreadChats = async (rows) => {
+    let isUnreadInMessenger = null;
+    try {
+      await loadModules(['ReQL', 'LSDatabaseSingleton', 'MWPIsThreadUnread']);
+      const ReQL = window.require('ReQL');
+      const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
+      const { isThreadUnreadForViewer } = window.require('MWPIsThreadUnread');
+      if (typeof isThreadUnreadForViewer === 'function') {
+        isUnreadInMessenger = async (thread) => {
+          const chat = await ReQL.firstAsync(ReQL.fromTableAscending(db.tables.threads).getKeyRange(int64Key(thread)));
+          return chat ? isThreadUnreadForViewer(chat) && !isMutedChat(chat) : undefined;
+        };
+      }
+    } catch {}
+    const counted = new Set();
+    const unread = [];
+    for (const row of rows) {
+      const href = row.getAttribute('href');
+      if (counted.has(href)) continue;
+      counted.add(href);
+      const thread = href?.match(/\/t\/(\d+)/)?.[1];
+      const known = thread && isUnreadInMessenger ? await isUnreadInMessenger(thread).catch(() => undefined) : undefined;
+      if (known ?? isUnreadChat(row)) unread.push(row);
+    }
+    // Whether Messenger's copy answered: then no chat means none to count.
+    unread.fromMessenger = Boolean(isUnreadInMessenger);
+    return unread;
+  };
   const chatSummary = (row) => {
     const texts = rowTexts(row).filter((part) => part.visible).map((part) => part.text);
     const age = texts.lastIndexOf('·');
@@ -202,18 +254,46 @@
     return { name: texts[0] ?? '', preview };
   };
 
-  // Whether a chat row has nothing to notify about, as Messenger's copy of
-  // the chat list says: its newest message is your own, or came in late.
-  const nothingNew = async (row) => {
+  // Messenger's copy of the chat a row links to: { thread, chat }, or null.
+  const chatRecord = async (row) => {
     const thread = row.getAttribute('href')?.match(/\/t\/(\d+)/)?.[1];
-    const me = currentUserId();
-    if (!thread || !me) return false;
+    if (!thread) return null;
     await loadModules(['ReQL', 'LSDatabaseSingleton']);
     const ReQL = window.require('ReQL');
     const db = await window.require('LSDatabaseSingleton').LSDatabaseSingleton;
     const chat = await ReQL.firstAsync(ReQL.fromTableAscending(db.tables.threads).getKeyRange(int64Key(thread)));
-    if (!chat) return false;
-    return int64(chat.snippetSenderContactId) === BigInt(me) || serverNow() - Number(int64(chat.lastActivityTimestampMs)) > LATE_MS;
+    return chat ? { thread, chat } : null;
+  };
+  // Whether a chat has nothing to notify about, as Messenger's copy of it
+  // says: its newest message is your own, came in late, or Messenger
+  // notified about it already.
+  const nothingNew = ({ thread, chat }) => {
+    const me = currentUserId();
+    if (!me) return false;
+    const lastActivity = Number(int64(chat.lastActivityTimestampMs));
+    return (
+      int64(chat.snippetSenderContactId) === BigInt(me) ||
+      serverNow() - lastActivity > LATE_MS ||
+      lastActivity <= (pageNotifiedUpTo.get(thread) ?? -1)
+    );
+  };
+  // What iMessenger's own notification last said about each chat, and the chat's
+  // last activity then: when the count rose twice in a row, or rose again
+  // later for another reason (a computer back from sleep), the same message
+  // came up two or more times (#22). Messenger's copy keeps no id for a
+  // chat's newest message, so a notification counts as said again when the
+  // chat's last activity is the same, or when the name and preview are the
+  // same and the chat hasn't been read since (another "ok" after you read
+  // the first one is new).
+  const fallbackShown = new Map();
+  const saidAlready = (href, said, record) => {
+    const before = fallbackShown.get(href);
+    if (!before) return false;
+    const activity = record ? Number(int64(record.chat.lastActivityTimestampMs)) : null;
+    if (activity !== null && activity === before.activity) return true;
+    if (said !== before.said) return false;
+    const readUpTo = record ? Number(int64(record.chat.lastReadWatermarkTimestampMs)) : null;
+    return readUpTo === null || before.activity === null || readUpTo < before.activity;
   };
 
   // Facebook raises its own notifications (see MODULE_PATCHES). In case it
@@ -221,14 +301,20 @@
   // and Facebook stayed quiet.
   const notifyNewestChat = async () => {
     const links = chatLinks();
-    const unread = links.filter(isUnreadChat);
+    const unread = await unreadChats(links);
     // A message you send from your phone in an encrypted chat can leave that
     // chat unread here, and a computer back from sleep catches up on chats
     // all at once; Messenger notifies about neither.
+    // With no unread chat, the newest chat is tried only when Messenger's copy
+    // couldn't be read. When it could, the chats were read or muted while
+    // iMessenger waited, and the newest one may be a muted group.
     let link;
-    for (const row of unread.length ? unread : links.slice(0, 1)) {
-      if (!(await nothingNew(row).catch(() => false))) {
+    let record = null;
+    for (const row of unread.length || unread.fromMessenger ? unread : links.slice(0, 1)) {
+      const found = await chatRecord(row).catch(() => null);
+      if (!found || !nothingNew(found)) {
         link = row;
+        record = found;
         break;
       }
     }
@@ -236,9 +322,13 @@
     if (!link || isMuted() || Date.now() - lastPageNotification < 4000) return;
     const chat = chatSummary(link);
     const href = link.getAttribute('href');
+    const said = `${chat.name}\n${chat.preview}`;
+    if (saidAlready(href, said, record)) return;
+    fallbackShown.set(href, { said, activity: record ? Number(int64(record.chat.lastActivityTimestampMs)) : null });
+    if (fallbackShown.size > 100) fallbackShown.delete(fallbackShown.keys().next().value);
     raisingFallback = true;
     try {
-      const notification = new FMessNotification(chat.name || 'Messenger', {
+      const notification = new iMessengerNotification(chat.name || 'Messenger', {
         body: chat.preview || say('New message', 'Tin nhắn mới'),
         icon: link.querySelector('img')?.currentSrc,
       });

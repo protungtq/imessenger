@@ -16,8 +16,8 @@ earlier part declares, and the numbers set that order.
 | 06-routes | The chats' route and its marks on `<html>`; the cursor in the message box; links |
 | 07-layout | Layout closer to the old desktop app; the strip under the window buttons |
 | 08-panes | Resizable chat list and details |
-| 09-marks | `data-fmess-ui` marks for themes, found without the page's language |
-| 10-selection | What can be selected; Select All |
+| 09-marks | `data-imessenger-ui` marks for themes, found without the page's language |
+| 10-selection | What can be selected; Select All; spell check in fields (Settings); a copied image pastes as the image |
 | 11-scrollbars | Overlay scroll bars |
 | 12-viewer | The photo/video viewer: its buttons and zoom |
 | 13-shortcuts | Keyboard shortcuts |
@@ -27,6 +27,7 @@ earlier part declares, and the numbers set that order.
 | 17-theme-hooks | Buttons, search box and quick reactions themes can ask for |
 | 18-notification-reply | Clicks on notifications and replying from them |
 | 19-account | Your picture and the account menu |
+| 19-downloads | Downloads from Facebook's CDN and unnamed ones; says when one is done, with Show in Finder |
 | 20-theme | The theme picked in Settings; settings from iMessenger; closes the function |
 
 The joined script is the same text the single file was; `node

@@ -17,7 +17,7 @@
   };
   let warmChats = settings.warmChats !== false;
   try {
-    const changed = localStorage.getItem('fmess.warmChats');
+    const changed = localStorage.getItem('imessenger.warmChats');
     if (changed !== null) warmChats = changed !== '0';
   } catch {}
   const WARM_MODULES = ['ReQL', 'LSDatabaseSingleton', 'LSFactory', 'LSIntEnum', 'LSIssueMessagesRangeQueryStoredProcedure', 'LSMessagingThreadTypeUtil'];
