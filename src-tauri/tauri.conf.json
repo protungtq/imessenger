@@ -33,7 +33,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZBMUJGMDYwQzNGQ0M4QzgKUldUSXlQekRZUEFiK21nN1cwSmRubUdJdSs5QTBOUFpuam5LOTd5THRUa3k1bjdrZVdLa3JsVFoK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEMxRkEwOEM2Q0M2QTNDODgKUldTSVBHck14Z2o2d1dSQy8wRzdOSHlrM3diUlFFS3djMkZsQmsrUUpGMlpXaW1aL1pUVFZybWoK",
       "endpoints": [
         "https://github.com/protungtq/imessenger/releases/latest/download/latest.json"
       ],
