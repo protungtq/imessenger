@@ -151,7 +151,7 @@ jobs:
           releaseName: iMessenger ${{ needs.create-release.outputs.tag }}
           releaseBody: See RELEASE_NOTES.md in this repository.
           releaseDraft: true
-          includeUpdaterJson: false
+          includeUpdaterJson: true
           args: ${{ steps.options.outputs.args }}
 
       # The same installers under names without the version, so the website can
@@ -181,14 +181,14 @@ jobs:
 
       # Windows also as one .exe that runs without installing, for computers
       # that don't allow installing software. Built again with FMESS_PORTABLE
-      # set (only fMess's own crate compiles again), so its update prompt
+      # set (only iMessenger's own crate compiles again), so its update prompt
       # downloads the new .exe instead of running the installer.
       - name: Attach the portable Windows app
         if: runner.os == 'Windows'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FMESS_PORTABLE: '1'
+          IMESSENGER_PORTABLE: '1'
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
@@ -198,10 +198,32 @@ jobs:
           ls -la portable
           gh release upload "${{ needs.create-release.outputs.tag }}" portable/iMessenger-windows-portable.exe --clobber --repo "${{ github.repository }}"
 
+
+  # Each build adds its platforms to latest.json, the file the app's updater
+  # reads; make sure none went missing before the draft is published.
+  check:
+    needs: [create-release, build]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ID: ${{ needs.create-release.outputs.id }}
+        run: |
+          asset=$(gh api "repos/$REPO/releases/$ID" --jq '.assets[] | select(.name == "latest.json") | .id')
+          gh api -H "Accept: application/octet-stream" "repos/$REPO/releases/assets/$asset" > latest.json
+          for platform in darwin-aarch64 darwin-x86_64 linux-x86_64 windows-x86_64; do
+            jq -e ".platforms[\"$platform\"]" latest.json > /dev/null || { echo "latest.json has no $platform"; exit 1; }
+          done
+          jq -r '.platforms | keys | join(", ")' latest.json
+          gh api "repos/$REPO/releases/$ID" --jq '.assets[].name' | grep -qx iMessenger-windows-portable.exe || { echo "No iMessenger-windows-portable.exe"; exit 1; }
+
   # Publish the draft once every platform is built and attached, so the
   # release is ready to share without another click.
   publish:
-    needs: [create-release, build]
+    needs: [create-release, build, check]
     permissions:
       contents: write
     runs-on: ubuntu-latest
