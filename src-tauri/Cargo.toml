@@ -1,6 +1,6 @@
 [package]
 name = "imessenger"
-version = "1.1.0"
+version = "1.2.0"
 description = "iMessenger — unofficial desktop client for Messenger on the web (based on fMess)"
 authors = ["toanbku"]
 license = "MIT"
