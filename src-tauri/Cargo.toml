@@ -1,6 +1,6 @@
 [package]
 name = "imessenger"
-version = "1.2.0"
+version = "1.3.0"
 description = "iMessenger — unofficial desktop client for Messenger on the web (based on fMess)"
 authors = ["toanbku"]
 license = "MIT"
@@ -27,6 +27,16 @@ tauri-plugin-dialog = "2.7.3"
 tokio = { version = "1.53.3", features = ["time"] }
 # The system's preferred language, for fMess's own words (see i18n.rs).
 sys-locale = "0.3"
+# Settings › Font: the fonts the system has, and the names in a font file.
+fontdb = "0.24"
+ttf-parser = "0.25"
+
+[features]
+# Live checks only (tests/app/live-check.sh): lets a debug build's page go
+# through a local proxy (IMESSENGER_PROXY) that can cut the network. On macOS that
+# needs macOS 14 (Network.framework proxies), above iMessenger's minimum, so it is
+# never in a release build.
+test-proxy = ["tauri/macos-proxy"]
 
 [profile.release]
 codegen-units = 1

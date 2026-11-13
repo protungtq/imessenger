@@ -1,12 +1,15 @@
-# iMessenger 1.2.0
+# iMessenger 1.3.0
 
-Bản này bổ sung cơ chế **tự cập nhật ngay trong app** cho iMessenger, dùng cặp khóa ký riêng của iMessenger. Nội dung và các sửa lỗi giữ nguyên như bản 1.1.0.
+Bản này đồng bộ mã nguồn fMess 0.1.35 của tác giả gốc (từ 0.1.33 ở bản 1.2.0), gồm tính năng chọn font chữ cho Messenger và loạt sửa lỗi tự phục hồi sau khi máy ngủ dậy.
 
 ## Có gì mới
 
-- **App tự thông báo khi có bản mới, cho tải về và tự cài ngay trong app.** Từ bản sau 1.2.0 trở đi, khi có phiên bản mới, iMessenger sẽ hiện thông báo; bạn chỉ cần bấm đồng ý là app tự tải gói cập nhật, kiểm chứng chữ ký điện tử bằng khóa công khai tích hợp sẵn, rồi tự cài đặt — không còn phải lên trang Releases tải file exe về như trước.
-- **Riêng bản 1.2.0 vẫn cần cài tay một lần**: đây là bản đầu tiên chứa khóa công khai của iMessenger, các bản cũ (1.0.0, 1.1.0) mang khóa của tác giả gốc nên không thể tự kiểm chứng gói cập nhật ký bằng khóa mới.
-- Bao gồm toàn bộ sửa lỗi của bản 1.1.0, nổi bật là: hết thông báo cho các đoạn chat đã tắt thông báo, mỗi tin nhắn chỉ báo một lần, hết đơ khi gọi điện trên Windows, phóng to ảnh trong chat cá nhân đã chuẩn, lưu ảnh ngay trong app.
+- **Chọn font chữ cho Messenger.** Vào **Cài đặt › Giao diện › Font** để chọn bất kỳ font nào có trên máy; nút **Thêm…** nhận file .ttf/.otf và dùng ngay mà không cần cài font vào hệ thống. Font mới áp dụng ngay lập tức.
+- **Tự phục hồi sau khi máy ngủ dậy.** Sau khi máy ngủ từ 5 phút trở lên, tin nhắn không còn kẹt ở trạng thái "Đang gửi": app tự tải lại trang khi bạn gõ xong. Mất mạng rồi có mạng lại mà kết nối Facebook vẫn đứt thì app cũng tự tải lại, khỏi phải tải lại bằng tay.
+- **Tự tải lại khi gặp lỗi "Couldn't load chats".** App tự thử tải lại một lần như khi bấm Reload bằng tay.
+- **Windows: thông báo kêu chuông.** Thông báo mới kêu bằng âm thanh của Windows, mỗi tin nhắn kêu một lần; vẫn im lặng khi bật Không làm phiền hoặc đã tắt âm thanh của Messenger.
+- **Sửa lỗi hiển thị:** hết nhấp nháy khi cuộn nhanh trong đoạn chat nền gradient trên macOS; khung sửa tin nhắn không còn bị bóp hẹp; thông báo Windows hiện đúng tên app trong Cài đặt; chữ toast đọc được ở dark mode với các giao diện Zalo, WhatsApp, Teams.
+- **Theme:** giao diện Messenger gốc hoặc kiểu Zalo, WhatsApp, Teams, đủ cả sáng lẫn tối; tự thêm theme của bạn từ một file CSS (xem mục "Make a theme" trong README).
 
 ## Nguồn gốc & tác giả
 

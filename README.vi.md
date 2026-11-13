@@ -19,9 +19,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/protungtq/imessenger/releases/latest"><img src="https://img.shields.io/github/v/release/toanbku/imessenger?label=release" alt="Bản mới nhất"></a>
+  <a href="https://github.com/protungtq/imessenger/releases/latest"><img src="https://img.shields.io/github/v/release/protungtq/imessenger?label=release" alt="Bản mới nhất"></a>
   <a href="https://github.com/protungtq/imessenger/actions/workflows/ci.yml"><img src="https://github.com/protungtq/imessenger/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/toanbku/imessenger" alt="Giấy phép MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/protungtq/imessenger" alt="Giấy phép MIT"></a>
 </p>
 
 
@@ -40,6 +40,8 @@ trải nghiệm như ứng dụng gốc.
 - **Ẩn trạng thái đang nhập.** Đối phương không thấy "đang nhập…" khi bạn soạn tin.
 - **Cài đặt Messenger tập trung.** Âm thanh, Không làm phiền, Dark Mode và trạng
   thái hoạt động nằm cạnh cài đặt của iMessenger, đồng bộ với điện thoại.
+- **Theme.** Giao diện Messenger gốc, hoặc kiểu Zalo, WhatsApp, Teams, đủ cả sáng lẫn
+  tối. Tự thêm theme của bạn từ một file CSS.
 - **Tối ưu bàn phím.** Phím tắt bên dưới; mở đoạn chat là con trỏ nằm sẵn trong ô soạn tin.
 - **Zoom ảnh mượt mà.** Chụm hai ngón hoặc nhấp đúp trong trình xem ảnh.
 - **Luôn chạy nền.** Badge tin chưa đọc trên Dock hoặc taskbar, biểu tượng trên
@@ -106,6 +108,15 @@ iMessenger hiển thị facebook.com/messages bằng webview có sẵn của h�
 máy chủ riêng và không gửi dữ liệu phân tích. Trang web chỉ được nhờ iMessenger làm vài
 việc như hiện thông báo (`src-tauri/capabilities/messenger-web.json`), không đọc
 được file hay chạy chương trình trên máy bạn.
+
+## Tự làm theme
+
+Theme chỉ là một file CSS, thêm vào ở **Cài đặt › Theme › Thêm…**. Muốn đổi màu theo ý
+mình thì bắt đầu từ [`themes/starter/starter.css`](themes/starter/starter.css). Muốn giao
+diện giống một app khác thì nhờ coding agent dùng skill trong
+[`.claude/skills/imessenger-theme`](.claude/skills/imessenger-theme/SKILL.md), chỉ cần gửi screenshot
+của app đó. Chi tiết và cách gửi theme lên cho mọi người dùng nằm ở
+[`themes/README.md`](themes/README.md).
 
 ## Build từ mã nguồn
 

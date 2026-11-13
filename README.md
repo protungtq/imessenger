@@ -19,9 +19,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/protungtq/imessenger/releases/latest"><img src="https://img.shields.io/github/v/release/toanbku/imessenger?label=release" alt="Latest release"></a>
+  <a href="https://github.com/protungtq/imessenger/releases/latest"><img src="https://img.shields.io/github/v/release/protungtq/imessenger?label=release" alt="Latest release"></a>
   <a href="https://github.com/protungtq/imessenger/actions/workflows/ci.yml"><img src="https://github.com/protungtq/imessenger/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/toanbku/imessenger" alt="MIT license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/protungtq/imessenger" alt="MIT license"></a>
 </p>
 
 
@@ -39,6 +39,8 @@ a window of their own again and makes it feel like the old app.
 - **Block Typing.** Nobody sees "typing…" while you draft.
 - **Messenger's settings in one place.** Sounds, Do Not Disturb, dark mode and
   active status next to iMessenger's own, synced with your phone.
+- **Themes.** Messenger's own look, or Zalo, WhatsApp and Teams looks, each in light
+  and dark. Add your own from a CSS file.
 - **Keyboard first.** Shortcuts below; opening a chat puts the cursor in its message box.
 - **Zoomable photos.** Pinch or double-click in the photo viewer.
 - **Always there.** Unread badge on the Dock or taskbar, a tray icon, keeps running
@@ -106,6 +108,15 @@ Facebook's page; iMessenger never sees your password, has no server and sends no
 analytics. The page can ask iMessenger for only a handful of things, like showing a
 notification (`src-tauri/capabilities/messenger-web.json`); it can't read your
 files or run programs.
+
+## Make a theme
+
+A theme is one CSS file: add it in **Settings › Theme › Add…**. Start from
+[`themes/starter/starter.css`](themes/starter/starter.css) for your own colours, or let a
+coding agent copy another app's look with the skill in
+[`.claude/skills/imessenger-theme`](.claude/skills/imessenger-theme/SKILL.md): screenshots of that app
+are enough. [`themes/README.md`](themes/README.md) has the details and how to send a theme
+in for everyone.
 
 ## Build from source
 
