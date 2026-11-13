@@ -18,9 +18,10 @@ theme found:
 |---|---|
 | Chat | encrypted (e2ee), not encrypted, group |
 | Messenger chat theme | default, gradient, colour (and wallpaper) |
-| iMessenger look | Messenger, Zalo, WhatsApp, Teams (CSS put in the page, nothing saved) |
+| iMessenger look | Messenger, Zalo, WhatsApp, Teams, and any other theme in `src-tauri/themes/` (CSS put in the page, nothing saved) |
 | Mode | light, dark (Messenger's own setting, put back at the end) |
 | Messages | text bubbles (yours, theirs), quotes, emoji-only ("icons") |
+| Toasts | one of Facebook's own (`cometPushToast`) per look and mode, as a chat named `toast` |
 
 It scrolls back up to 8 screens for a screen with a quote or an emoji message.
 Notes at the end say what wasn't found (e.g. no emoji message): look for one
@@ -34,6 +35,11 @@ by hand then.
 - an emoji-only message has no bubble behind it
 - `box gradient` per chat: whether the chat box still paints the theme's
   gradient (the fast-scroll flash, #27, comes from it)
+- a toast's text reads (≥ 3) and its close button's cross shows on its face
+  (≥ 2). Facebook draws toasts the other way round from the page, so a theme's
+  page colours leaking into them gave white on white (0.1.33, dark mode, all
+  three themes). A toast that never showed fails (`no toast showed`, with
+  whether the page was hidden: keep the window in view while it runs)
 
 Skipped on purpose: text in links (shared posts) and buttons (the message a
 reply quotes), see-through bubbles Messenger dims, bubbles drawn as a border
@@ -53,3 +59,6 @@ known-good one (it must pass).
 The fast-scroll flash, hover cards, pinch/zoom, anything animated: ask anh
 to try it in the debug build (a recorder probe helps, see imessenger-fast-iteration
 in memory).
+
+For what happens when the computer sleeps, the network drops, the encrypted
+chats' worker dies or a notification rings, see the imessenger-live-check skill.

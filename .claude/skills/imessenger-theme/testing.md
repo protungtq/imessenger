@@ -1,16 +1,56 @@
 # Testing a theme in the real app
 
-The debug app runs as the user, in the user's Messenger account. All the read-only rules from
-extraction.md apply to probes too: no sending, reacting, calling, or opening unread chats.
+iMessenger runs as the user, in the user's Messenger account. All the read-only rules from
+extraction.md apply to tests and probes too: no sending, reacting, calling, or opening
+unread chats.
 
-## Setup (once per session)
+## Quick loop (any system, the installed iMessenger)
+
+iMessenger reads a theme added in Settings from its data folder on every page load:
+
+| System | Theme file |
+|---|---|
+| macOS | `~/Library/Application Support/asia.so1.imessenger/themes/<id>.css` |
+| Windows | `%APPDATA%\asia.so1.imessenger\themes\<id>.css` |
+| Linux | `~/.local/share/asia.so1.imessenger/themes/<id>.css` |
+
+Add the theme once with **Settings › Theme › Add…** (it checks the file, copies it there
+and selects it; `<id>` is the file name in lowercase ASCII, with spaces and punctuation
+as dashes: `My Theme.css` becomes `my-theme`; a built-in's name gets `-custom`). Then build
+or copy each change over **that same file** and **Reload** (Cmd+R / Ctrl+R). Don't make
+new files in that folder by hand: a file named after a built-in (`zalo.css`,
+`whatsapp.css`, `teams.css`) is ignored for the built-in, and a name Add… wouldn't make
+(`my_theme.css`) shows in Settings but never loads. A file that breaks a rule (2 MB,
+`@import`, a non-`data:` URL) doesn't load either: add it with Add… again to read the
+reason. Remove it in Settings when
+done if it was only a test.
+
+Nothing to back up for this loop: it changes only the theme the user chose to add. You
+can't see iMessenger's window from here: ask the user for screenshots of what you need, light
+and dark, and compare them with the reference (on macOS the deep loop below takes its
+own). On Windows, `python3` may be `py` or `python`.
+
+## What to look at
+
+In light and dark, region by region, top left to bottom right: rail, list header, search,
+filters, rows (hover, selected, unread), chat header, chat background, bubbles (yours,
+theirs, a reply, a quote `> …`, emoji only), dates, reactions, the composer (empty, with
+text: the send button; the default 👍 must not look like a send button), details pane.
+Then: a tooltip, the ⋯ menu, the reaction picker, a toast (text readable, close button
+visible), the photo viewer (nothing the theme draws over it), a group chat, a link
+preview, the reply bar, the typing dots if someone types, Settings › Appearance › Hide
+profile pictures on, and on Windows/Linux the top of the window (`--imessenger-title-bar` is 0
+there: nothing drawn under where macOS has its buttons).
+
+## Deep loop setup (macOS, debug build)
 
 ```sh
 S=<scratchpad from the system prompt>; APP=<app>
 F="$HOME/Library/Application Support/asia.so1.imessenger/settings.json"
 cp "$F" "$S/settings.backup.json"        # restore this at the end, whatever happens
 cp "$(dirname "$F")/.window-state.json" "$S/window-state.backup.json"   # the debug app's 880x600 lands here
-cd ~/projects/herald && npx tauri build --debug --bundles app   # only after Rust/inject.js/BUILT_IN changes
+npm install                              # once, in a fresh clone (README, Build from source)
+npx tauri build --debug --bundles app    # in the repo; only after Rust/inject.js/BUILT_IN changes
 ```
 
 The debug and installed apps share a bundle id and are single-instance: a second one only
@@ -21,12 +61,12 @@ Other agents may need the debug app too. Convention: while
 `<scratchpad>/debug-app-busy` exists, don't launch the debug app, kill iMessenger or edit
 settings.json; poll until it's gone. Put that check at the top of your run script.
 
-Reusable probes and a launcher are in `~/projects/imessenger-themes/tools/` (README there):
-`run.sh <probe.js> [wait-s] [--env K=V …]`, `bench.js` (frames while scrolling and opening
-chats, the same script runs in Chrome), `typing.js`, `viewer.js`, `typing-dots.js`. The
-Teams loop's own scripts (`mk.py`, `img.swift`…) lived in a `/tmp` scratchpad and are gone:
-`/tmp` is wiped when the Mac restarts, so keep anything worth reusing in the workspace.
-There is no PIL: crop with `sips -c <h> <w> --cropOffset <y> <x>`, shrink with `sips -Z`.
+Reusable probes and a launcher are in `themes/tools/` (README there): `run.sh <probe.js>
+[wait-s] [--env K=V …]`, `apply.py`, `bench.js` (frames while scrolling and opening chats,
+the same script runs in Chrome), `typing.js`, `viewer.js`, `typing-dots.js`, `pixels.py`.
+Keep anything worth reusing there, not in `/tmp` (wiped when the Mac restarts). Don't count
+on Pillow: `pixels.py` reads PNGs with nothing installed; crop with
+`sips -c <h> <w> --cropOffset <y> <x>`, shrink with `sips -Z`.
 
 zsh doesn't split an unquoted variable: `open $E …` with `E="--env A=1"` fails. Write each
 `--env K=V` as its own argument.
@@ -55,27 +95,40 @@ python3 -c 'import json,sys; p=sys.argv[1]; d=json.load(open(p)); d["zoom"]=1; d
 rm -f $S/probe.log
 open --env IMESSENGER_PROBE=$S/apply.js --env IMESSENGER_PROBE_DELAY=12 --env IMESSENGER_WINDOW_SIZE=880x600 \
      --env IMESSENGER_SNAPSHOT=$S/$APP-light.png --stderr $S/probe.log \
-     ~/projects/herald/src-tauri/target/debug/bundle/macos/iMessenger.app
+     src-tauri/target/debug/bundle/macos/iMessenger.app
 # then wait until the log has "[snapshot]" or "no result" (Monitor, or shoot.sh's polling loop)
 grep '\[probe\]\|\[snapshot\]' $S/probe.log | cut -c1-2000
 ```
 
-## apply.js: the built CSS plus a measuring body
+`themes/tools/run.sh` does the launch, the wait and the printing in one go (no snapshot
+unless you pass `--env IMESSENGER_SNAPSHOT=…`).
+
+### Windows and Linux
+
+`npm install` once, then `npx tauri build --debug --no-bundle`, and run the binary with the
+variables set; it prints `[probe] …` to its own stderr. Quit the installed iMessenger first.
+`bench.js` and `typing.js` only define a function there: append
+`return await window.__imessengerBench();` (or `__imessengerTyping`) to a copy, as run.sh does.
+
+```sh
+IMESSENGER_PROBE=$S/apply.js IMESSENGER_WINDOW_SIZE=880x600 ./src-tauri/target/debug/imessenger 2>$S/probe.log   # Linux
+```
+```powershell
+$env:IMESSENGER_PROBE="$S\apply.js"; $env:IMESSENGER_WINDOW_SIZE="880x600"; .\src-tauri\target\debug\imessenger.exe 2> $S\probe.log   # Windows
+```
+
+There is no `IMESSENGER_SNAPSHOT` there: ask the user for a screenshot of the window. The
+settings folder is in SKILL.md ("Where things are"): back up `settings.json` and
+`.window-state.json` (`IMESSENGER_WINDOW_SIZE` lands there) and restore both the same way.
+
+## apply.py: the built CSS plus a measuring body
 
 There's no rebuild per CSS change. Build the theme, then wrap it into a probe:
 
 ```sh
-python3 ~/projects/imessenger-themes/$APP/build.py ~/projects/imessenger-themes/$APP/$APP.css
-python3 - "$S" ~/projects/imessenger-themes/$APP/$APP.css "$S/measure.js" <<'EOF'
-import json, sys
-out, css, body = sys.argv[1], open(sys.argv[2]).read(), open(sys.argv[3]).read()
-open(f'{out}/apply.js', 'w').write(
-    "let style = document.getElementById('imessenger-theme');\n"
-    "if (!style) { style = document.createElement('style'); style.id = 'imessenger-theme'; }\n"
-    f"style.textContent = {json.dumps(css)};\n"
-    "document.documentElement.append(style);\n"
-    "await new Promise((r) => setTimeout(r, 1500));\n" + body)
-EOF
+python3 themes/$APP/build.py $S/$APP.css          # a recolour: its .css is already built
+python3 themes/tools/apply.py $S/$APP.css $S/apply.js $S/measure.js           # light
+python3 themes/tools/apply.py $S/$APP.css $S/apply-dark.js $S/measure.js --dark
 ```
 
 A probe-applied theme lacks `UNDER_EVERY_THEME` (hooks.md).
@@ -120,8 +173,8 @@ return {
 
 ## Dark mode without touching Messenger's setting
 
-Put this before the measuring body (it's the `DEMO_DARK` block of the newer demo-shot.js).
-Since 0.1.24 `data-imessenger-dark` follows Facebook's own mark on `<html>`
+`apply.py --dark` puts this before the measuring body (it's also the `DEMO_DARK` block of
+demo-shot.js). Since 0.1.24 `data-imessenger-dark` follows Facebook's own mark on `<html>`
 (`__fb-dark-mode`/`__fb-light-mode`) as it changes, so the class change below is what flips
 it; it lasts until Facebook rewrites the class or the page reloads. Measure or snapshot
 right away.
@@ -137,7 +190,7 @@ document.documentElement.style.colorScheme = 'dark';
 
 Changing the account's Facebook language is a settings change, so don't. Simulate a
 translated Facebook instead: rewrite every aria-label and check that no themed style
-changes (from `i18n-wa-probe.js`, 2026-11-01).
+changes.
 
 ```js
 const props = ['display', 'order', 'background-color', 'background-image', '-webkit-mask-image', 'border-radius', 'visibility'];
@@ -154,6 +207,7 @@ return { marks: [...new Set(english.map((l) => l.split(':')[0]))], changed: engl
 `changed` must be empty. Open the details first if they're themed. Also grep the source for
 aria-label selectors without a mark beside them:
 `grep -n 'aria-label' $APP.src.css | grep -v 'data-imessenger-ui'`. Each one is English-only.
+Without the deep loop, that grep is the check.
 
 ## Snapshots of states that must be undone (reply bar, viewer, menus)
 
@@ -173,13 +227,13 @@ no dialog role (2026-11-02); `/messenger_media` is no longer the way in. Click t
 `[role="button"]` wrapper in a message (`img` 100px or wider inside `[data-message-id]`),
 not other links: shared posts and link cards open in the system browser (links.rs). iMessenger
 finds the layer by the download link in its top bar (`a[download]` outside `[role="main"]`).
-Escape closes it (Facebook's own), or the last button of that bar. `tools/viewer.js` does
-the whole check: flag set, the theme's title and badge hidden, double-click zoom, Escape
-unzooms then closes.
+Escape closes it (Facebook's own), or the last button of that bar. `themes/tools/viewer.js`
+does the whole check: flag set, the theme's title and badge hidden, double-click zoom,
+Escape unzooms then closes.
 
 ## States only people cause: the typing dots
 
-Nobody can make the other side type. Run `tools/typing-dots.js` with
+Nobody can make the other side type. Run `themes/tools/typing-dots.js` with
 `IMESSENGER_PROBE_WAIT=1500` and ask the user to keep a busy chat open in the debug app; it
 returns when the dots show. Don't type to trigger them: the dots are the other person's.
 
@@ -224,14 +278,15 @@ Facebook. A reply bar left open stays in that chat for the user.
   ```
   It should be about the same as with no theme. A big drop means a full-chat mask or
   background, or a broad `:has()`.
-- `tools/bench.js` measures more (rest, opening six read chats, scrolling the list and the
-  messages): run it with the theme, with `theme: null`, and with `IMESSENGER_NO_INJECT=1` for
-  WebKit alone. Same window size each time.
+- `themes/tools/bench.js` measures more (rest, opening six read chats, scrolling the list
+  and the messages): run it with the theme, with `theme: null`, and with
+  `IMESSENGER_NO_INJECT=1` for WebKit alone. Same window size each time.
 
 ## Side by side
 
 - Reference: the target in your Chrome tab at 880×600 CSS px, 100% zoom, light and dark,
-  `save_to_disk` into `spec/ref/`. iMessenger: `$S/$APP-light.png` / `-dark.png`.
+  `save_to_disk` into `spec/ref/` (or the user's screenshots, screenshots.md). iMessenger:
+  `$S/$APP-light.png` / `-dark.png`, or the user's screenshots of iMessenger.
 - **Reference at 880×600 when Chrome won't resize** (the user's window is fullscreen): in
   your tab add a style `html, body { width: 880px !important; height: 600px !important;
   overflow: hidden !important } html { background: #ff00ff !important }` (keep the body's
@@ -241,33 +296,31 @@ Facebook. A reply bar left open stays in that chat for the user.
   (menus) are still placed against the real viewport and may overflow the 880 edge.
 - Check the composer's last button in a chat whose quick reaction is the default 👍: it
   must not look like a working send button (hooks.md, like/send).
-- Read both images and compare region by region, top-left to bottom-right: rail, list
-  header, search, filters, rows, chat header, background, bubbles, dates, composer, details.
-  Then compare the probe's numbers with the spec tables. Numbers decide; the picture only
-  shows where to look.
-- Also look at: a tooltip, the ⋯ list menu, the reaction picker, the photo viewer
-  (a layer; every decoration and iMessenger-drawn control hidden), the call buttons (look only: calls have no
-  theme), the reply bar, a chat with a link preview, a group chat, the details pane open,
-  the Windows/Linux case (`--imessenger-title-bar: 0`: nothing drawn over the top of the page).
-- Optional quick look in Chrome: apply the CSS to facebook.com/messages in a tab (memory
-  note `imessenger-fast-iteration`). There's no inject.js there, so no marks: only the
-  English-label fallbacks get tested.
+- Read both images and compare region by region ("What to look at"). Then compare the
+  probe's numbers (or `pixels.py` on both pictures) with the spec tables. Numbers decide;
+  the picture only shows where to look.
+- Optional quick look in Chrome: open facebook.com/messages in your own tab and put the
+  built CSS in a `<style>` there (Chrome tools' JavaScript, or the console). There's no
+  inject.js in Chrome, so no marks and no `data-imessenger-dark`: only the English-label
+  fallbacks and the light colours get tested. Close the tab after.
 
-## Site screenshots (when shipping)
+## Demo screenshots (pull requests, the site)
 
-`~/projects/imessenger-themes/shoot.sh <theme|none> <out.png>` writes `theme` and `zoom: 1` into
-the **real settings.json**, kills iMessenger, and runs `demo-shot.js` (made-up names, pictures
-and lines; nothing real left visible). Before using it:
+Pictures that leave the machine show no real people. `themes/tools/shoot.sh <theme|none>
+<out.png>` (macOS, debug build) writes `theme` and `zoom: 1` into the **real
+settings.json** (back it up first), quits iMessenger, and runs `demo-shot.js` (made-up names,
+pictures and lines; nothing real left visible).
 
-- Its `S=` line points at an old session's scratchpad. Copy shoot.sh and the probe into
-  your scratchpad and set `S` to it.
-- Variants: prepend `const DEMO_LANG = 'vi';` and/or `const DEMO_DARK = true;` to a copy and
-  pass `DEMO=<that file>`. If `grep -c DEMO_DARK demo-shot.js` is 0, that copy predates dark
-  support: add the dark block above before its final `await sleep(800)`.
-- The theme must be known to the debug build (built-in after the Ship step), or pass `none`
-  and prepend the apply snippet.
-- Four shots per theme: `shot-<app>.webp`, `-vi`, `-dark`, `-vi-dark`, at 1760×1200 WebP like
-  the others (`sips` can read WebP but not write it).
+- Variants: copy demo-shot.js, prepend `const DEMO_LANG = 'vi';` and/or
+  `const DEMO_DARK = true;` (and `const DEMO_CHAT = '<thread id>';` to try one chat
+  first; keep that copy out of git), and pass `DEMO=<that file>`.
+- The theme must be known to the debug build (built-in, after the Ship step), or pass
+  `none` and prepend the apply snippet (`apply.py` output without its body) to the demo
+  copy.
+- For the site: four shots per theme, `shot-<app>.webp`, `-vi`, `-dark`, `-vi-dark`, at
+  1760×1200 WebP like the others (`sips` can read WebP but not write it).
+- On Windows and Linux: no shoot.sh. Ask the user to open a chat with only their own test
+  messages, or blur names and pictures before sharing.
 
 ## Restore (always, also after a failure)
 
@@ -275,9 +328,11 @@ and lines; nothing real left visible). Before using it:
 pkill -f "iMessenger.app/Contents/MacOS/imessenger"; sleep 1
 cp "$S/settings.backup.json" "$HOME/Library/Application Support/asia.so1.imessenger/settings.json"
 cp "$S/window-state.backup.json" "$HOME/Library/Application Support/asia.so1.imessenger/.window-state.json"
-open -a /Applications/iMessenger.app
+open -a iMessenger
 ```
 
-Restore while no iMessenger runs: a running iMessenger writes its settings back on changes. Remove
-any theme file you put in `~/Library/Application Support/asia.so1.imessenger/themes/`.
-Close your Chrome tabs.
+On Windows and Linux, quit the debug binary, copy the backups back into the settings
+folder (SKILL.md, "Where things are"), and start the user's iMessenger again. Restore while no
+iMessenger runs: a running iMessenger writes its settings back on changes. Remove any theme file
+you put in iMessenger's `themes/` folder that the user didn't ask to keep. Close your Chrome
+tabs.

@@ -266,6 +266,52 @@ const positionChat = async () => {
   return here;
 };
 
+// Toasts ---------------------------------------------------------------------
+// Facebook draws its toasts ("All chats loaded.", "Link copied") the other way
+// round from the page: dark on a light page, light on a dark one. A theme's
+// colours for the page leaked into them: white text on a white toast.
+let pushToast = null;
+const toastCard = (el) => {
+  for (let e = el; e && e !== document.body; e = e.parentElement) {
+    if (parseColours(getComputedStyle(e).backgroundColor)[0]?.a > 0.5) return e;
+  }
+  return null;
+};
+const checkToast = async () => {
+  if (!pushToast) {
+    await loadModules(['cometPushToast']);
+    pushToast = window.require('cometPushToast').cometPushToast;
+  }
+  let node = null;
+  let text = '';
+  // Facebook can hold a toast back (one already showing, a busy page): again.
+  for (let attempt = 0; attempt < 3 && !node; attempt++) {
+    text = `iMessenger check toast ${Date.now() % 100000}`;
+    pushToast({ message: text }, 4000);
+    for (let i = 0; i < 30 && !node; i++) {
+      await sleep(150);
+      node = [...document.querySelectorAll('span, div')].find((e) => e.childElementCount === 0 && e.textContent === text);
+    }
+    if (!node) await sleep(2000);
+  }
+  if (!node) return { missing: { focused: document.hasFocus(), visibility: document.visibilityState } };
+  await sleep(500); // it slides in
+  const r = node.getBoundingClientRect();
+  const card = toastCard(node);
+  let inside = [r.right + 6, r.top + r.height / 2];
+  const at = document.elementFromPoint(...inside);
+  if (card && !(at && card.contains(at))) inside = [r.left + r.width / 2, Math.min(r.bottom + 4, card.getBoundingClientRect().bottom - 3)];
+  // Its close button: the middle of the cross against the button's face just
+  // inside its top edge.
+  const close = card && [...card.querySelectorAll('[role="button"], button')].pop();
+  const buttons = [];
+  if (close) {
+    const b = close.getBoundingClientRect();
+    buttons.push({ cross: [b.left + b.width / 2, b.top + b.height / 2], face: [b.left + b.width / 2, b.top + Math.min(4, b.height / 4)] });
+  }
+  return { viewport: [innerWidth, innerHeight], bubbles: [], quotes: [], icons: [], containerGradient: false, toasts: [{ text: rgb(getComputedStyle(node).color), inside, where: text, buttons }] };
+};
+
 // Run ------------------------------------------------------------------------
 const snapshot = async (file) => {
   window.__imessengerSnapshotDone = null;
@@ -273,6 +319,7 @@ const snapshot = async (file) => {
   for (let i = 0; i < 40 && window.__imessengerSnapshotDone !== `${OUT}/${file}`; i++) await sleep(250);
 };
 const entries = new Map(picked.map((chat) => [chat.label, { label: chat.label, e2ee: chat.e2ee, group: chat.group, theme: chat.theme, runs: [] }]));
+const toasts = { label: 'toast', toast: true, runs: [], missing: [] };
 try {
   for (const mode of ['light', 'dark']) {
     await setMode(mode);
@@ -303,16 +350,30 @@ try {
       }
       setLook(userTheme);
     }
+    for (const [look, css] of Object.entries(THEMES)) {
+      setLook(css);
+      await sleep(400);
+      const file = `toast-${look}-${mode}.png`;
+      const res = await checkToast().catch((error) => ({ missing: String(error) }));
+      if (res.missing) {
+        toasts.missing.push({ look, mode, why: res.missing });
+      } else {
+        await snapshot(file);
+        toasts.runs.push({ look, mode, file, ...res });
+      }
+      await sleep(4000); // until it's gone
+    }
+    setLook(userTheme);
   }
 } finally {
   setLook(userTheme);
   if (startedWith && window.__imessengerSetDarkMode) window.__imessengerSetDarkMode(startedWith);
   else if (startedWith) darkMode.saveDarkModeSetting(startedWith, { onRevert() {} });
 }
-result.chats = [...entries.values()];
+result.chats = [...entries.values(), toasts];
 const seenAny = (k) => result.chats.some((c) => c.has?.[k]);
 if (!seenAny('quote')) result.notes.push('no quote found in the chats checked: quotes not checked');
 if (!seenAny('icon')) result.notes.push('no emoji-only message found in the chats checked: emoji messages not checked');
-for (const c of result.chats) if (!c.has?.texts) result.notes.push(`${c.label}: no text bubble found to check`);
+for (const c of result.chats) if (!c.toast && !c.has?.texts) result.notes.push(`${c.label}: no text bubble found to check`);
 result.darkModeWas = startedWith;
 return result;

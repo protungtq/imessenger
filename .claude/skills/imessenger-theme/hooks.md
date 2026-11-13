@@ -4,7 +4,7 @@ Everything here was read from the page script (`src-tauri/src/inject/`, joined i
 and the shipped themes on 2026-11-02. Facebook and inject.js change: re-check with
 
 ```sh
-cd ~/projects/herald && grep -rn "data-imessenger\|--imessenger\|imessenger-account\|UNDER_EVERY_THEME" src-tauri/src/inject/
+grep -rn "data-imessenger\|--imessenger\|imessenger-account\|UNDER_EVERY_THEME" src-tauri/src/inject/
 ```
 
 ## How the CSS reaches the page
@@ -31,13 +31,18 @@ cd ~/projects/herald && grep -rn "data-imessenger\|--imessenger\|imessenger-acco
 - **UNDER_EVERY_THEME**: makes `[data-imessenger-ui="composer-bar"]` (the reply / link preview
   bar above the box) and its two inner div levels `height: auto`, with 8px bottom padding,
   so larger type doesn't overflow. Don't set fixed heights there.
+- **Settings › Font** (`applyFont`, `<style id="imessenger-font">`): a font the user picks
+  replaces the theme's `font-family`. It is set on
+  `html:root :is(div, span, a, p, h1…h6, li, input, textarea, button, label)` with
+  `!important`, which outweighs the usual `html :is(div, span, …)` font rule of a theme. The
+  theme's sizes, weights and pseudo-element fonts stay.
 
 ## Attributes and variables iMessenger sets
 
 | Hook | Where / when | Use it for |
 |---|---|---|
 | `html[data-imessenger-dark]` | Messenger is dark. Facebook's own mark on `<html>` (`__fb-dark-mode` / `__fb-light-mode`) decides when it is there, and changes to it are followed (0.1.24: before, a setting changed on the phone left a light theme over a dark page for up to 30 s); otherwise the setting (`ENABLED`, or `USE_SYSTEM` while the system is dark) | Every dark colour. Key on this, not on `.__fb-dark-mode`: with `USE_SYSTEM`, Facebook marks only parts of the page. |
-| `html[data-imessenger-chats]` | path is `/messages…` or `/messenger_media…` | Scoping page decorations to the chats. The shipped themes don't scope, but new ones should. |
+| `html[data-imessenger-chats]` | path is `/messages…` or `/messenger_media…` | Scoping page decorations to the chats. Teams and Zalo scope theirs, WhatsApp doesn't; new themes should. |
 | `html[data-imessenger-media]` | photo/video viewer open (`/messenger_media`, or the viewer on screen: in chats it is a layer at the same address) | Hide `html::before/::after` and other overlays. On macOS the viewer has its own title bar. |
 | `html[data-imessenger-unread="N"]` | number of unread chats in the list, checked every 2 s; removed at 0 | `content: attr(data-imessenger-unread)` badge on the rail |
 | `html[data-imessenger-name]` | your full name | `content: attr(data-imessenger-name)` (Zalo's title bar: `"Zalo - " attr(data-imessenger-name)`) |
@@ -56,15 +61,21 @@ Facebook translates its aria-labels: a Vietnamese Facebook says "Tìm kiếm", n
 A theme that matched only English labels broke for those users (commit 396bd90). iMessenger
 therefore marks the parts themes style by where they are and by their icons. `markUi()`
 runs every second (`syncPanes`) and after each click, and the composer is marked again on
-input, so a fresh DOM may go up to a second without its marks.
+input, so a fresh DOM may go up to a second without its marks. A mark that no longer fits
+(the composer gone, the edit box closed) is taken off on the same run.
 
 | Mark | Element | Found by |
 |---|---|---|
-| `composer` | the message box row: `[role=region]` holding the contenteditable `[role=textbox]` in `[role=main]` | structure |
+| `composer` | the message box row: `[role=region]` holding the contenteditable `[role=textbox]` in `[role=main]`. Not marked while a message is edited (Facebook's edit box has no region of its own); a mark that no longer fits is taken off | structure |
 | `composer-bar` | the composer's previous sibling: the reply bar / link preview bar | structure |
 | `voice-clip`, `attach`, `sticker`, `gif`, `emoji` | composer buttons | start of their `svg path d` (`COMPOSER_ICONS`). Breaks if Facebook redraws an icon. |
-| `like` / `send` | the button in the composer's last `<span>`: `like` while it holds an `<img>` (the chat's quick reaction), `send` otherwise | structure, re-marked on input. **Trap (0.1.21):** Messenger's default thumbs-up is an `<svg>` ("Send a like"), so it is marked `send` on an empty box. A theme that shows `send` as a send button then sends a 👍. Guard: `> span:has(> [role="button"] path[d^="M16,9.1c"])` (its icon) besides the mark and the English label. |
+| `like` / `send` | the button in the composer's last `<span>`: `like` while it holds an `<img>` (the chat's quick reaction) or Messenger's own thumbs-up `<svg>` (its path starts `M16,9.1c`, `THUMBS_UP` in 09-marks.js), `send` otherwise | structure, re-marked on input. **History (0.1.21):** the default thumbs-up used to be marked `send` on an empty box, and a theme that showed `send` as a send button sent a 👍. It is `like` now; still check the composer in a chat whose quick reaction is the default 👍. |
 | `more-actions` | any other composer button outside the text field. While typing, Messenger folds attach/sticker/gif into one "+", which gets this mark. | structure |
+| `edit-composer` | while a message is edited, Facebook's edit box in the composer's place: two rows, `edit-bar` then `edit-box` | from the text box outwards: each step the next box with another `[role=button]` in it (field, row, this), below the box holding `[role=log]` |
+| `edit-bar` | its first row: the title ("Edit message", an `h3`) and `edit-cancel` (X) | structure |
+| `edit-box` | its second row; its child is the row of `edit-field` and `edit-done` | structure |
+| `edit-field` | the text box and `edit-emoji`; its parent has Facebook's 20px corners | structure |
+| `edit-done` | ✓, which saves. `[aria-disabled="true"]` until the text changes | structure |
 | `chat-header` | the header row above `[role=log]` | ancestor of `info` |
 | `info` | header button with `aria-expanded` that opens the details. `[aria-expanded="true"]` while they're open. | structure |
 | `audio-call`, `video-call` | the two svg buttons just before `info` on the same line (only marked when exactly two) | position |
@@ -106,8 +117,8 @@ emoji picker.
 | Typing dots (someone typing) | in `[role="log"]`, not in a message: `[aria-hidden="true"]:not([data-message-id] *):has(> div[role="presentation"] + div [role="presentation"])`; its first child is the picture column (Messenger pads it 6px where messages have 14px, so it sits 8px to the left: Teams sets `padding-left: 14px`), the second holds the dots' bubble |
 | Page language | `html[lang]` (`en` for an English Facebook): the place to write the target's own words for English only | To style one, find a structural selector with a probe (roles, `dir`,
 `data-*`, inline `style*=` pieces), never text, and note it in the mapping table. If the
-only way is new JS, that is an inject.js change for the user to decide on, not part of the
-theme.
+only way is new JS, that is an inject.js change for the maintainer to decide on (an issue
+or its own pull request), not part of the theme.
 
 ## Buttons a theme draws on the chat list: `--imessenger-buttons`
 
@@ -279,7 +290,7 @@ at the theme's own tokens (`var(--wa-…)`), so dark mode only swaps the tokens.
 | `--popover-background` | menus, popovers |
 | `--notification-badge` | red badges |
 | `--chat-bubble-border-radius`, `--chat-bubble-padding-vertical`, `--chat-bubble-padding-horizontal` | bubble shape |
-| `--chat-outgoing-message-bubble-background-color`, `--chat-outgoing-message-background-gradient` (set `initial`) | your bubbles |
+| `--chat-outgoing-message-bubble-background-color`, `--chat-outgoing-message-background-gradient` | your bubbles. The shipped themes set the gradient to `initial` (flat bubbles). A `linear-gradient(…)` there is painted by iMessenger on your bubbles, fixed to the window (`background-attachment: fixed`, 07-layout.js), so the shade depends on where a bubble sits, as in Messenger's gradient chat themes. Untried in a theme: read that comment in 07-layout.js and test chats with and without their own chat theme |
 | `--chat-incoming-message-bubble-background-color` | theirs |
 | `--chat-message-text-color`, `--chat-incoming-message-text-color`, `--chat-admin-text-color` | message text, system lines |
 | `--chat-replied-message-background-color` | the quoted message in a reply |
@@ -293,15 +304,23 @@ at the theme's own tokens (`var(--wa-…)`), so dark mode only swaps the tokens.
 iMessenger itself sets `--messenger-card-spacing: 0`, `--messenger-card-corner-radius: 0`,
 `--messenger-card-box-shadow: none` in the chats (edge-to-edge panes). Leave those alone.
 
-## Facebook's mode islands: two blocks every theme ends with
+## Facebook's mode islands: the blocks every theme ends with
 
-Copy these verbatim from the end of `whatsapp.src.css`:
+Every theme ends with these. Copy them verbatim from the end of
+`themes/starter/starter.css`:
 
 1. **Tooltips** are drawn in the opposite mode to the page (dark on light, light on dark).
    Give `[role="tooltip"] .__fb-dark-mode` light text and `.__fb-light-mode` dark text
    (commit ebb937b: before, dark mode had white-on-white tooltips).
 2. **Dark islands on a light page** (toasts such as "All chats loaded.", the photo
    viewer): `html:not([data-imessenger-dark]) .__fb-dark-mode` keeps light text (commit 0af239e).
+3. **Light islands on a dark page** (the same toasts in dark mode):
+   `html[data-imessenger-dark] .__fb-light-mode` keeps dark text (commit c74e4fc: before, toasts
+   were white on white in dark mode in all three themes).
+
+In blocks 2 and 3, also reset any button face the theme remaps
+(`--secondary-button-background`): a toast's close button uses it, and Zalo's cross
+vanished on its own light face.
 
 To make tooltips look like the target's, style the tooltip's background and type too, but
 keep the text colour following its own background.
@@ -329,7 +348,8 @@ keep the text colour following its own background.
 - **Text the theme writes** (`content: "Contact info"`, a placeholder drawn by `::after`) is
   in one language. Facebook's own text is translated. Only write the target's brand words,
   or accept that the theme speaks its home language (Zalo writes Vietnamese).
-- **Zoom.** The user runs iMessenger at zoom 1.25. Compare and measure at 1.0 (testing.md).
+- **Zoom.** People run iMessenger at other zooms (the maintainer at 1.25). Compare and measure
+  at 1.0 (testing.md).
 - **Flags for descendants.** Anything that would be `x:has(y) z` becomes a custom property on
   `x:has(y)` plus `@container style(--flag: 1) { z { … } }` (Teams: read rows, reaction
   pills, the like button, the composer field). The flag inherits, so the query matches every

@@ -1,6 +1,7 @@
 // Runs iMessenger's handling of Messenger's sounds (SoundPlayer's sounds through Web
 // Audio, so WebKit doesn't make iMessenger Now Playing) against fake media
-// elements and a fake Web Audio. `node tests/sounds.mjs`
+// elements and a fake Web Audio, and whether a notification rings on Windows
+// (shouldRing). `node tests/sounds.mjs`
 import { readdirSync, readFileSync } from 'node:fs';
 
 // The page script's parts, joined in file-name order as build.rs does.
@@ -14,15 +15,17 @@ const src = readdirSync(parts)
   .replace(/\r\n/g, '\n');
 const patch = src.match(/    SoundPlayer\(exports\) \{[\s\S]*?\n    \},\n/)[0];
 const sounds = src.match(/  const nativePlay = HTMLMediaElement\.prototype\.play;[\s\S]*?\n  HTMLMediaElement\.prototype\.pause = [\s\S]*?\n  };\n/)[0];
+const within = src.match(/  const within = .*\n/)[0];
+const ring = src.match(/  const ringsHere = [\s\S]*?\n  };\n/)[0];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function world({ fetchFails = false, fetchDelay = 0 } = {}) {
+function world({ fetchFails = false, fetchDelay = 0, nativeFails = false, platform = 'MacIntel', soundsOn = true } = {}) {
   const w = { muted: false, sources: [] };
   class HTMLMediaElement {
     play() {
       this.nativePlays = (this.nativePlays ?? 0) + 1;
-      return Promise.resolve();
+      return nativeFails ? Promise.reject(new Error('NotAllowedError')) : Promise.resolve();
     }
     pause() {}
   }
@@ -69,8 +72,8 @@ function world({ fetchFails = false, fetchDelay = 0 } = {}) {
     if (fetchFails) throw new Error('offline');
     return { ok: true, arrayBuffer: async () => 'bytes' };
   };
-  const env = { HTMLMediaElement, HTMLAudioElement, AudioContext, fetch, isMuted: () => w.muted };
-  const run = new Function(...Object.keys(env), `let soundPlayerCalls = 0;\n${sounds}return ({ ${patch} });`);
+  const env = { HTMLMediaElement, HTMLAudioElement, AudioContext, fetch, isMuted: () => w.muted, navigator: { platform }, messengerPrefs: { soundsOn }, window: {} };
+  const run = new Function(...Object.keys(env), `let soundPlayerCalls = 0;\n${sounds}${within}${ring}return ({ ${patch} shouldRing });`);
   // Messenger's SoundPlayer: play() plays one of its elements, at once.
   const exports = {
     play(element, options = {}) {
@@ -78,8 +81,10 @@ function world({ fetchFails = false, fetchDelay = 0 } = {}) {
       return element.play();
     },
   };
-  run(...Object.values(env)).SoundPlayer(exports);
+  const page = run(...Object.values(env));
+  page.SoundPlayer(exports);
   w.soundPlayer = exports;
+  w.shouldRing = (notification = {}) => page.shouldRing({ silent: false, ...notification });
   w.audio = (url = 'https://static.xx.fbcdn.net/rsrc.php/x.ogg') => new HTMLAudioElement(url);
   return w;
 }
@@ -134,6 +139,52 @@ const check = (name, ok, detail) => results.push(`${ok ? 'PASS' : 'FAIL'} ${name
   const sound = w.audio();
   await w.soundPlayer.play(sound);
   check('if Web Audio fails, the element plays as before', w.sources.length === 0 && sound.nativePlays === 1, sound);
+}
+
+// Windows: Messenger plays its sound just before it notifies.
+{
+  const w = world({ platform: 'Win32' });
+  w.soundPlayer.play(w.audio()).catch(() => {});
+  check("Windows: after Messenger's sound played, the notification is quiet", (await w.shouldRing()) === false);
+}
+{
+  const w = world({ platform: 'Win32', fetchFails: true, nativeFails: true });
+  w.soundPlayer.play(w.audio()).catch(() => {});
+  check("Windows: when Messenger's sound couldn't play, the notification rings", (await w.shouldRing()) === true);
+}
+{
+  const w = world({ platform: 'Win32' });
+  check('Windows: with no sound from Messenger (its fourth message in a chat), the notification rings', (await w.shouldRing()) === true);
+}
+{
+  const w = world({ platform: 'Win32' });
+  const rang = await w.shouldRing();
+  const sound = w.audio();
+  await w.soundPlayer.play(sound);
+  check("Windows: Messenger's sound coming just after a notification that rang is held back", rang === true && w.sources.length === 0 && !sound.nativePlays, { rang, sources: w.sources.length });
+}
+{
+  const w = world({ platform: 'Win32' });
+  await w.soundPlayer.play(w.audio());
+  await w.shouldRing();
+  check("Windows: a quiet notification doesn't hold Messenger's next sound back", w.sources.length === 1, { sources: w.sources.length });
+}
+{
+  const w = world({ platform: 'Win32', soundsOn: false });
+  check("Windows: with Messenger's sounds off, the notification is quiet", (await w.shouldRing()) === false);
+}
+{
+  const w = world({ platform: 'Win32' });
+  w.muted = true;
+  check('Windows: during Do Not Disturb, the notification is quiet', (await w.shouldRing()) === false);
+}
+{
+  const w = world({ platform: 'Win32' });
+  check('Windows: a notification asking for silence is quiet', (await w.shouldRing({ silent: true })) === false);
+}
+{
+  const w = world({ platform: 'MacIntel' });
+  check('macOS: notifications stay silent (Messenger plays its own sound)', (await w.shouldRing()) === false);
 }
 
 console.log(results.join('\n'));
