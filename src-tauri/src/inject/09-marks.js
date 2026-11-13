@@ -3,7 +3,10 @@
   // a theme that only matched them worked in English. iMessenger marks the parts
   // themes style with data-imessenger-ui, found by where they are and by their
   // icons: composer (the message box) and in it voice-clip, attach, sticker,
-  // gif, more-actions (any other button there), emoji, like and send;
+  // gif, more-actions (any other button there), emoji, like and send; while
+  // a message is edited, edit-composer in its place and in it edit-bar
+  // ("Edit message" and edit-cancel), edit-box with edit-field (the box and
+  // edit-emoji) and edit-done (✓, which saves);
   // chat-header and in it audio-call, video-call and info (which shows the
   // details); details; list-menu (⋯ above the chat list); reactions (the
   // reaction picker) and in it more-emojis.
@@ -53,10 +56,71 @@
       else if (!field?.contains(button)) mark(button, 'more-actions');
     }
   };
+  // The marks markComposer gives: they belong to the message box only.
+  const COMPOSER_MARKS = new Set([
+    'composer',
+    'composer-bar',
+    ...COMPOSER_ICONS.map(([, name]) => name),
+    'record-stop',
+    'like',
+    'send',
+    'more-actions',
+  ]);
+  const EDIT_MARKS = new Set(['edit-composer', 'edit-bar', 'edit-cancel', 'edit-box', 'edit-field', 'edit-emoji', 'edit-done']);
+  // The lowest box around el, inside the chat, with a button that isn't in el.
+  const aroundWithButton = (el, log) => {
+    for (let box = el.parentElement; box && !box.contains(log); box = box.parentElement) {
+      for (const button of box.querySelectorAll('[role="button"]')) if (!el.contains(button)) return box;
+    }
+    return null;
+  };
+  // Editing a message: Facebook's box for the edit has no region, and is
+  // made of two rows, a bar (the title and a cancel button) and the box: the
+  // field (the text and an emoji button) and ✓ beside it. Found from the text
+  // outwards, each step the next box with another button in it.
+  const markEdit = (textbox, log) => {
+    if (!log) return null;
+    const field = aroundWithButton(textbox, log);
+    const row = field && aroundWithButton(field, log);
+    const panel = row && aroundWithButton(row, log);
+    if (!panel || panel.children.length !== 2) return null;
+    const box = [...panel.children].find((child) => child.contains(row));
+    const bar = [...panel.children].find((child) => child !== box);
+    mark(panel, 'edit-composer');
+    mark(bar, 'edit-bar');
+    mark(box, 'edit-box');
+    mark(field, 'edit-field');
+    for (const button of panel.querySelectorAll('[role="button"]')) {
+      mark(button, field.contains(button) ? 'edit-emoji' : box.contains(button) ? 'edit-done' : 'edit-cancel');
+    }
+    return panel;
+  };
+  // Marks of a message box that is gone, or of what wasn't one: Facebook
+  // keeps elements across chats and edits, and a mark left on them keeps a
+  // theme's look for the box (a pill, a hidden button) where it doesn't belong.
+  const unmarkOldComposer = (main, composer, edit) => {
+    for (const el of main?.querySelectorAll(`[${UI}]`) ?? []) {
+      const name = el.getAttribute(UI);
+      let kept = true;
+      if (EDIT_MARKS.has(name)) kept = Boolean(edit?.contains(el));
+      else if (name === 'composer') kept = el === composer;
+      else if (name === 'composer-bar') kept = el === composer?.previousElementSibling;
+      else if (COMPOSER_MARKS.has(name)) kept = Boolean(composer?.contains(el));
+      if (!kept) el.removeAttribute(UI);
+    }
+  };
   let markedInfo = null;
   function markUi(main, list, log, details) {
-    const composer = main?.querySelector('[role="textbox"][contenteditable="true"]')?.closest('[role="region"]');
+    // The box's own region. While a message is edited, Facebook's box for the
+    // edit has none, and the nearest region holds the whole chat: marked as
+    // the composer, it took the themes' rules for the box (margins, centred
+    // like a pill) and the chat shrank to a narrow column in the middle.
+    const textbox = main?.querySelector('[role="textbox"][contenteditable="true"]');
+    const region = textbox?.closest('[role="region"]');
+    const composer = region && !region.contains(log) ? region : null;
     if (composer) markComposer(composer);
+    const edit = textbox && !composer ? markEdit(textbox, log) : null;
+    unmarkOldComposer(main, composer, edit);
     mark(details, 'details');
     mark(list?.querySelector('[role="button"][aria-haspopup="menu"]:not([role="grid"] *)'), 'list-menu');
     // The header's button with aria-expanded opens the details; the calls are

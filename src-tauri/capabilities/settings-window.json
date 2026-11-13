@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "settings-window",
-  "description": "The local Settings window reads and saves iMessenger's settings, Messenger's preferences through iMessenger's window, sends a test notification, lists, adds and removes themes, chooses or resets the app icon, and checks for updates.",
+  "description": "The local Settings window reads and saves iMessenger's settings, Messenger's preferences through iMessenger's window, sends a test notification, lists, adds and removes themes and fonts, chooses or resets the app icon, and checks for updates.",
   "windows": [
     "settings"
   ],
@@ -14,6 +14,9 @@
     "allow-list-themes",
     "allow-add-theme",
     "allow-remove-theme",
+    "allow-list-fonts",
+    "allow-add-font",
+    "allow-remove-font",
     "allow-choose-app-icon",
     "allow-reset-app-icon",
     "allow-check-for-updates",

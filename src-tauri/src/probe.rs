@@ -4,6 +4,10 @@
 // returns. The file is a function body: it may `await` and must `return`.
 // IMESSENGER_PROBE_WAIT=<seconds> waits that long for it (60 by default), for a
 // probe that waits for something only a person does, like someone typing.
+// IMESSENGER_PROBE_NO_FOCUS=1 runs it without bringing the window forward.
+// IMESSENGER_PROXY=<http://host:port> (webview.rs; on macOS a build with the
+// test-proxy feature) sends the page's traffic through a proxy, for
+// tests/app/live-check.sh, which cuts the network there.
 // IMESSENGER_NO_INJECT=1 (webview.rs) leaves iMessenger's page script out, to measure
 // what it costs.
 // IMESSENGER_WINDOW_SIZE=<width>x<height> sizes the window first, and
@@ -104,9 +108,12 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
             thread::sleep(Duration::from_secs(2));
         }
         // Focused, as when someone uses it: WebKit matches :focus and fires
-        // focus events only in the key window.
-        let _ = window.set_focus();
-        thread::sleep(Duration::from_millis(500));
+        // focus events only in the key window. IMESSENGER_PROBE_NO_FOCUS=1 leaves
+        // the focus where it is, for checks that run while someone works.
+        if std::env::var_os("IMESSENGER_PROBE_NO_FOCUS").is_none() {
+            let _ = window.set_focus();
+            thread::sleep(Duration::from_millis(500));
+        }
         let _ = window.eval(format!(
             "window.__imessengerProbe = undefined; (async () => {{ {script}\n}})().then(\
              (result) => {{ window.__imessengerProbe = JSON.stringify(result ?? null); }},\

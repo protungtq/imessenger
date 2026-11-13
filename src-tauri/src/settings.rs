@@ -48,6 +48,9 @@ pub struct Settings {
     pub theme_icon: bool,
     /// The name on iMessenger's windows, tray and notifications; none is "iMessenger".
     pub app_name: Option<String>,
+    /// The font Messenger's text is set in, over the theme's; none keeps
+    /// Facebook's (or the theme's). Several can be given, comma-separated.
+    pub font: Option<String>,
     /// A picture chosen in Settings is the app's icon (see icon.rs).
     pub custom_icon: bool,
     /// Widths the panes were dragged to; none keeps Facebook's.
@@ -83,6 +86,7 @@ impl Default for Settings {
             theme: None,
             theme_icon: true,
             app_name: None,
+            font: None,
             custom_icon: false,
             pane_widths: PaneWidths::default(),
             language: None,
@@ -93,6 +97,10 @@ impl Default for Settings {
 impl Settings {
     pub fn app_name(&self) -> &str {
         self.app_name.as_deref().map(str::trim).filter(|name| !name.is_empty()).unwrap_or("iMessenger")
+    }
+
+    pub fn font(&self) -> Option<&str> {
+        self.font.as_deref().map(str::trim).filter(|font| !font.is_empty())
     }
 }
 
@@ -202,6 +210,7 @@ pub fn update_settings<R: Runtime>(
             || settings.hide_avatars != previous.hide_avatars
             || settings.spell_check != previous.spell_check
             || settings.theme != previous.theme
+            || settings.font() != previous.font()
             || language_changed
         {
             let _ = window.eval(page_settings_script(&app, &settings));
@@ -217,6 +226,11 @@ pub fn update_settings<R: Runtime>(
         }
     }
     Ok(view(&app, settings))
+}
+
+/// Whether Messenger's sounds are on, as the page last said (on until it has).
+pub fn messenger_sounds_on<R: Runtime>(app: &AppHandle<R>) -> bool {
+    app.state::<MessengerPrefsState>().0.lock().unwrap().as_ref().map_or(true, |prefs| prefs.sounds_on)
 }
 
 /// Called by inject.js with Messenger's Preferences, which the phone app or
@@ -314,6 +328,9 @@ pub fn page_settings<R: Runtime>(app: &AppHandle<R>, settings: &Settings) -> Str
         "hideAvatars": settings.hide_avatars,
         "spellCheck": settings.spell_check,
         "theme": themes::for_page(app, settings.theme.as_deref()),
+        "font": settings.font(),
+        // The added files of that font (Settings › Font › Add…).
+        "fontFaces": crate::fonts::faces_for(app, settings.font()),
         "paneWidths": settings.pane_widths,
         // For the notifications the page writes itself.
         "lang": Lang::from_setting(settings.language.as_deref()),
@@ -341,8 +358,9 @@ pub fn set_custom_icon<R: Runtime>(app: &AppHandle<R>, on: bool) -> Result<(), S
     change(app, |settings| settings.custom_icon = on).map(drop)
 }
 
-/// Renames iMessenger's open windows and tray icon; the Dock, the menu bar and the
-/// Start menu keep the name it was installed with.
+/// Renames iMessenger's open windows and tray icon, and on Windows the name at the
+/// top of its notifications; the Dock, the menu bar and the Start menu keep
+/// the name it was installed with, and so do macOS's notifications.
 fn apply_app_name<R: Runtime>(app: &AppHandle<R>, name: &str) {
     for (label, window) in app.webview_windows() {
         if label != SETTINGS_WINDOW {
@@ -350,6 +368,8 @@ fn apply_app_name<R: Runtime>(app: &AppHandle<R>, name: &str) {
         }
     }
     menu::set_tooltip(app, name);
+    #[cfg(windows)]
+    crate::notify::name_app_id(app, name);
 }
 
 /// Changes the settings and saves them. The lock is held from reading to

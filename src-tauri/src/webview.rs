@@ -310,6 +310,14 @@ fn configure<'a, R: Runtime, M: Manager<R>>(
         .disable_drag_drop_handler()
         // Hidden windows must keep receiving messages (macOS 14+ only).
         .background_throttling(BackgroundThrottlingPolicy::Disabled);
+    // Live checks (tests/app/live-check.sh): the page's traffic through a
+    // local proxy that can cut the network. Debug builds only; on macOS also
+    // the test-proxy feature.
+    #[cfg(debug_assertions)]
+    let builder = match std::env::var("IMESSENGER_PROXY").ok().and_then(|proxy| proxy.parse::<Url>().ok()) {
+        Some(proxy) => builder.proxy_url(proxy),
+        None => builder,
+    };
     match user_agent() {
         Some(user_agent) => builder.user_agent(&user_agent),
         None => builder,

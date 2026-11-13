@@ -99,6 +99,12 @@
     window.__TAURI_INTERNALS__?.invoke('sync_messenger_prefs', { prefs }).catch(() => {});
     return true;
   };
+  // Live checks (tests/app/live-sound.js) read them, and have them reported
+  // at once after changing them.
+  if (window.__imessengerDebug) {
+    window.__imessengerReadMessengerPrefs = readMessengerPrefs;
+    window.__imessengerReportMessengerPrefs = reportMessengerPrefs;
+  }
   // Right after loading they may not be there yet: try every few seconds.
   const reportOnceRead = async (tries = 0) => {
     if (!(await reportMessengerPrefs()) && tries < 20) setTimeout(() => reportOnceRead(tries + 1), 3000);
@@ -173,12 +179,31 @@
     };
     source.start();
   };
+  // Messenger's latest sound: when it was asked for, and whether it played.
+  // On Windows a notification rings unless that sound just did, and one that
+  // rings holds Messenger's sound back for a moment, should it come after
+  // (see shouldRing): a message rings once.
+  let lastSound = { at: 0, played: Promise.resolve(false) };
+  let quietSoundsUntil = 0;
   HTMLMediaElement.prototype.play = function (...args) {
     const isSound = soundPlayerCalls > 0 && this instanceof HTMLAudioElement && this.src && !this.loop && !this.srcObject;
     if (!isSound) return nativePlay.apply(this, args);
-    if (isMuted()) return Promise.resolve();
+    if (isMuted() || Date.now() < quietSoundsUntil) return Promise.resolve();
     const pauses = pausesOf(this);
-    return playSound(this).catch(() => (pausesOf(this) === pauses ? nativePlay.apply(this, args) : undefined));
+    let played = false;
+    const playing = playSound(this)
+      .then(() => {
+        played = pausesOf(this) === pauses;
+      })
+      .catch(() =>
+        pausesOf(this) === pauses
+          ? nativePlay.apply(this, args).then(() => {
+              played = true;
+            })
+          : undefined,
+      );
+    lastSound = { at: Date.now(), played: playing.then(() => played, () => false) };
+    return playing;
   };
   HTMLMediaElement.prototype.pause = function (...args) {
     if (this instanceof HTMLAudioElement) {

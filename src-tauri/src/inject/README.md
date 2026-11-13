@@ -10,7 +10,7 @@ earlier part declares, and the numbers set that order.
 |---|---|
 | 01-start | Opens the script's function; debug listener log; `withRoot` |
 | 02-splash | iMessenger's loading screen in place of Facebook's |
-| 03-facebook-modules | Adjusts a few of Facebook's own modules as they load; Close in call windows |
+| 03-facebook-modules | Adjusts a few of Facebook's own modules as they load; Close in call windows; Messenger's error screens |
 | 04-privacy | Block Typing (iMessenger Settings) |
 | 05-messenger-prefs | Loads Facebook modules on demand; Messenger's Preferences for the Settings window |
 | 06-routes | The chats' route and its marks on `<html>`; the cursor in the message box; links |
@@ -28,6 +28,7 @@ earlier part declares, and the numbers set that order.
 | 18-notification-reply | Clicks on notifications and replying from them |
 | 19-account | Your picture and the account menu |
 | 19-downloads | Downloads from Facebook's CDN and unnamed ones; says when one is done, with Show in Finder |
+| 19-recover | Reloads the page by itself after the computer slept, when a connection stays down, and on "Couldn't load chats" |
 | 20-theme | The theme picked in Settings; settings from iMessenger; closes the function |
 
 The joined script is the same text the single file was; `node

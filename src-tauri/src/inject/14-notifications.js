@@ -75,7 +75,27 @@
     }
   };
   const within = (promise, ms) => Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve(null), ms))]);
+  // Whether a notification rings, on Windows. Messenger asks for no silence,
+  // so in a browser its notifications ring with Windows' sound; iMessenger's were
+  // silent, and with Messenger's own sound not playing either, new messages
+  // made no sound at all (#36). Messenger also plays its sound for a new
+  // message (at most three times a chat), around when it notifies: before,
+  // or just after, as it first asks whether its sounds are on. When that
+  // sound just played, the notification stays quiet; when the notification
+  // rings, it holds Messenger's sound back for a moment. Either way a message
+  // rings once. macOS and Linux notifications stay silent, with Messenger's
+  // sound.
+  // Live checks on a Mac decide as on Windows (window.__imessengerRingAnywhere).
+  const ringsHere = /^Win/.test(navigator.platform);
+  const shouldRing = async (notification) => {
+    if (!(ringsHere || (window.__imessengerDebug && window.__imessengerRingAnywhere)) || notification.silent || messengerPrefs?.soundsOn === false || isMuted()) return false;
+    const sound = lastSound;
+    const rings = Date.now() - sound.at > 3000 || !(await within(sound.played, 1500));
+    if (rings) quietSoundsUntil = Date.now() + 3000;
+    return rings;
+  };
   const sendNotification = async (notification) => {
+    const ring = shouldRing(notification);
     const details = await within(messageDetails.get(String(notification.tag)) ?? Promise.resolve(null), 2000);
     // With people's pictures hidden (Privacy), notifications go without them.
     const pictures = !privacy.hideAvatars;
@@ -101,6 +121,7 @@
       icon: icon ?? null,
       image: image ?? null,
       message: message || null,
+      sound: await ring,
     });
   };
 

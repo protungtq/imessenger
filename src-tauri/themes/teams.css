@@ -1104,6 +1104,72 @@ html[data-imessenger-chats] [role="main"] [data-imessenger-ui="composer"]:focus-
   line-height: 20px !important;
 }
 
+/* Editing a message: Teams' box again, with ✓ (save) in it after the emoji
+   button, in the brand colour once the text has changed; the bar above it
+   with the title and X (cancel), lined up with the box. */
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="edit-composer"] {
+  align-items: stretch !important;
+  background: var(--tm-card) !important;
+}
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="edit-bar"] {
+  padding: 8px 32px 6px !important;
+}
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="edit-bar"] h3 span {
+  color: var(--tm-fg1) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="edit-box"] {
+  padding: 0 32px 24px !important;
+}
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="edit-box"] > div {
+  min-height: 46px !important;
+  padding: 0 6px 0 0 !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+  border: 1px solid var(--tm-composer-line) !important;
+  border-radius: 6px !important;
+  background: var(--tm-card) !important;
+}
+html[data-imessenger-chats] [role="main"] [data-imessenger-ui="edit-box"] > div:focus-within {
+  box-shadow: inset 0 -4px 0 -2px var(--tm-focus-line) !important;
+}
+html[data-imessenger-chats] [role="main"] :is(div:has(> [data-imessenger-ui="edit-field"]), [data-imessenger-ui="edit-field"]) {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  align-items: center !important;
+}
+[data-imessenger-ui="edit-field"] [role="textbox"] {
+  font-size: 14px !important;
+  line-height: 20px !important;
+}
+[role="main"] :is([data-imessenger-ui="edit-cancel"], [data-imessenger-ui="edit-emoji"], [data-imessenger-ui="edit-done"]) {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  --hover-overlay: transparent !important;
+}
+[role="main"] :is([data-imessenger-ui="edit-cancel"], [data-imessenger-ui="edit-emoji"], [data-imessenger-ui="edit-done"]) svg {
+  width: 16px !important;
+  height: 16px !important;
+  background: var(--tm-fg2);
+}
+[role="main"] :is([data-imessenger-ui="edit-cancel"], [data-imessenger-ui="edit-emoji"], [data-imessenger-ui="edit-done"]) svg * {
+  visibility: hidden;
+}
+[role="main"] :is([data-imessenger-ui="edit-cancel"], [data-imessenger-ui="edit-emoji"], [data-imessenger-ui="edit-done"]:not([aria-disabled="true"])):hover svg,
+[role="main"] [data-imessenger-ui="edit-done"]:not([aria-disabled="true"]) svg {
+  background: var(--tm-brand-icon);
+}
+[role="main"] [data-imessenger-ui="edit-cancel"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m4.09 4.22.06-.07a.5.5 0 0 1 .63-.06l.07.06L10 9.29l5.15-5.14a.5.5 0 0 1 .63-.06l.07.06c.18.17.2.44.06.63l-.06.07L10.71 10l5.14 5.15c.18.17.2.44.06.63l-.06.07a.5.5 0 0 1-.63.06l-.07-.06L10 10.71l-5.15 5.14a.5.5 0 0 1-.63.06l-.07-.06a.5.5 0 0 1-.06-.63l.06-.07L9.29 10 4.15 4.85a.5.5 0 0 1-.06-.63l.06-.07-.06.07Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[role="main"] [data-imessenger-ui="edit-cancel"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='m3.9 4.05.07-.08a.75.75 0 0 1 .98-.07l.08.07L10 8.94l4.97-4.97a.75.75 0 0 1 .98-.07l.08.07c.27.27.3.68.07.98l-.07.08L11.06 10l4.97 4.97c.27.27.3.68.07.98l-.07.08a.75.75 0 0 1-.98.07l-.08-.07L10 11.06l-4.97 4.97a.75.75 0 0 1-.98.07l-.08-.07a.75.75 0 0 1-.07-.98l.07-.08L8.94 10 3.97 5.03a.75.75 0 0 1-.07-.98l.07-.08-.07.08Z'/%3E%3C/svg%3E"); }
+[role="main"] [data-imessenger-ui="edit-emoji"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10C2 5.58172 5.58172 2 10 2ZM10 3C6.13401 3 3 6.13401 3 10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10C17 6.13401 13.866 3 10 3ZM7.15467 12.4273C8.66416 13.9463 11.0877 14.0045 12.6671 12.5961L12.8453 12.4273C13.04 12.2314 13.3566 12.2304 13.5524 12.4251C13.7265 12.5981 13.7467 12.8674 13.6123 13.0627L13.5547 13.1322L13.5323 13.1545C11.5691 15.1054 8.39616 15.0953 6.44533 13.1322C6.25069 12.9363 6.25169 12.6197 6.44757 12.4251C6.64344 12.2304 6.96002 12.2314 7.15467 12.4273ZM12.5 7.5C13.0523 7.5 13.5 7.94772 13.5 8.5C13.5 9.05228 13.0523 9.5 12.5 9.5C11.9477 9.5 11.5 9.05228 11.5 8.5C11.5 7.94772 11.9477 7.5 12.5 7.5ZM7.5 7.5C8.05228 7.5 8.5 7.94772 8.5 8.5C8.5 9.05228 8.05228 9.5 7.5 9.5C6.94772 9.5 6.5 9.05228 6.5 8.5C6.5 7.94772 6.94772 7.5 7.5 7.5Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[role="main"] [data-imessenger-ui="edit-emoji"]:hover svg { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='2 2 16 16'%3E%3Cpath d='M2 10C2 5.58172 5.58172 2 10 2C14.4183 2 18 5.58172 18 10C18 14.4183 14.4183 18 10 18C5.58172 18 2 14.4183 2 10ZM7.5 9.5C8.05228 9.5 8.5 9.05228 8.5 8.5C8.5 7.94772 8.05228 7.5 7.5 7.5C6.94772 7.5 6.5 7.94772 6.5 8.5C6.5 9.05228 6.94772 9.5 7.5 9.5ZM11.75 12.5C11.75 11.5335 10.9665 10.75 10 10.75C9.0335 10.75 8.25 11.5335 8.25 12.5C8.25 13.4665 9.0335 14.25 10 14.25C10.9665 14.25 11.75 13.4665 11.75 12.5ZM12.5 9.5C13.0523 9.5 13.5 9.05228 13.5 8.5C13.5 7.94772 13.0523 7.5 12.5 7.5C11.9477 7.5 11.5 7.94772 11.5 8.5C11.5 9.05228 11.9477 9.5 12.5 9.5Z'/%3E%3C/svg%3E"); }
+[role="main"] [data-imessenger-ui="edit-done"] svg { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M7.03 13.9 3.56 10a.75.75 0 1 0-1.12 1l4 4.5c.29.32.79.34 1.09.03l10.5-10.5a.75.75 0 0 0-1.06-1.06l-9.94 9.94Z'/%3E%3C/svg%3E") center / 16px 16px no-repeat; }
+[role="main"] [data-imessenger-ui="edit-done"][aria-disabled="true"] svg { opacity: 0.5; }
+
 /* Replying (or a link's preview): Teams puts the quote inside the message
    box. The bar above the box and the box read as one bordered box, the bar
    its top part, its content Teams' quote card: light grey, a grey bar on
@@ -1615,6 +1681,16 @@ html:not([data-imessenger-dark]) .__fb-dark-mode {
   --secondary-text: #b0b3b8 !important;
   --primary-icon: #e4e6eb !important;
   --secondary-icon: #b0b3b8 !important;
+}
+
+/* And its light islands on a dark page (toasts again: Facebook draws them the
+   other way round from the page) keep their dark text: the page's light
+   text made them white on white. */
+html[data-imessenger-dark] .__fb-light-mode {
+  --primary-text: #050505 !important;
+  --secondary-text: #65676b !important;
+  --primary-icon: #050505 !important;
+  --secondary-icon: #65676b !important;
 }
 /* Tooltips: Facebook draws them in the other mode than the page. Teams'
    are not inverted: a card in the page's colours, dark text on white. */

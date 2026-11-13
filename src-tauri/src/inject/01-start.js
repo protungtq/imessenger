@@ -69,6 +69,45 @@
       note('console.error', args);
       return nativeError.apply(this, args);
     };
+
+    // The page's WebSockets, for live checks (tests/app/live-check.sh): where
+    // to (host and path only), when each opened and closed, and when it last
+    // got and sent a frame. Messenger's own way to see a dead connection.
+    const sockets = (window.__imessengerSockets = []);
+    const NativeWebSocket = window.WebSocket;
+    window.WebSocket = new Proxy(NativeWebSocket, {
+      construct(target, args, newTarget) {
+        const socket = Reflect.construct(target, args, newTarget);
+        let where = String(args[0]);
+        try {
+          const url = new URL(where);
+          where = `${url.host}${url.pathname}`;
+        } catch {}
+        const entry = { where, created: Date.now(), opened: null, closed: null, code: null, lastIn: null, ins: 0, lastOut: null, outs: 0 };
+        if (sockets.length >= 200) sockets.shift();
+        sockets.push(entry);
+        socket.__imessengerEntry = entry;
+        socket.addEventListener('open', () => (entry.opened = Date.now()));
+        socket.addEventListener('message', () => {
+          entry.lastIn = Date.now();
+          entry.ins += 1;
+        });
+        socket.addEventListener('close', (event) => {
+          entry.closed = Date.now();
+          entry.code = event.code;
+        });
+        return socket;
+      },
+    });
+    const nativeSocketSend = NativeWebSocket.prototype.send;
+    NativeWebSocket.prototype.send = function (data) {
+      const entry = this.__imessengerEntry;
+      if (entry) {
+        entry.lastOut = Date.now();
+        entry.outs += 1;
+      }
+      return nativeSocketSend.call(this, data);
+    };
   }
 
   // WebView2 (Windows) runs this before the page has its <html> element;

@@ -51,29 +51,6 @@
     html[${CHATS}] [role="main"] [data-imessenger-ui="details"] {
       box-shadow: -1px 0 0 var(--divider, var(--card-border-color));
     }
-    /* In a chat with a gradient theme, Facebook paints the box around the
-       messages with that gradient (in its inline style), under messages
-       that cover it. On macOS a fast scroll outran WebKit's painting, and
-       the parts not yet painted showed the gradient: the chat flashed purple
-       and blue (#27).
-       Your bubbles show that gradient one of two ways: in some chats each
-       paints it itself (a fixed background), in others each is a see-through
-       window onto the box (0.1.31 dropped the box's gradient and left those
-       bubbles bare). So your bubbles (Messenger's class for their colour,
-       x11jlvup) paint it themselves, fixed to the window as the box's is,
-       and the box goes without only where your bubbles paint it (those, or
-       Messenger's own fixed ones, x1nr1p0w): should Facebook rename them,
-       the :has() keeps the box's gradient, and the flash comes back rather
-       than bare bubbles. A wallpaper (a picture) stays. Themes set the gradient to
-       initial on the box, so their bubbles keep their colour, and paint the
-       box themselves (:where adds no weight). */
-    html[${CHATS}] [role="main"] [style*="--chat-outgoing-message-background-gradient"] .x11jlvup {
-      background-image: var(--chat-outgoing-message-background-gradient) !important;
-      background-attachment: fixed !important;
-    }
-    :where(html[${CHATS}] [role="main"] [style*="linear-gradient"][style*="--chat-outgoing-message-background-gradient"]:has(.x11jlvup, .x1nr1p0w)) {
-      background-image: none !important;
-    }
     /* The photo/video viewer centres its top bar (close, download, forward)
        in a band --header-height tall, made for Facebook's 56px bar; without
        it the buttons sit off the top. The viewer gets a regular title bar
@@ -125,4 +102,69 @@
     html[${CHATS}] img[height="100%"][width="100%"] { height: auto !important; }
   `;
   withRoot((root) => root.append(layoutStyle));
+
+  // In a chat with a gradient theme, Facebook paints the box around the
+  // messages with that gradient (in its inline style), under the messages,
+  // which cover it but for your bubbles. On macOS a fast scroll outran
+  // WebKit's painting, and the parts not yet painted showed the gradient: the
+  // chat flashed purple and blue (#27, #41).
+  // Your bubbles show that gradient one of two ways: each paints it itself (a
+  // fixed background), or each has no colour (Messenger's class for their
+  // colour gives them the chat's, transparent here) and shows the box through
+  // it. So the bubbles with that class paint it themselves, fixed to the
+  // window as the box's is, and the box goes without. The class is looked up
+  // in Facebook's style sheets rather than written here: until it is found
+  // (if Facebook stops colouring bubbles that way), the box keeps its
+  // gradient, and the flash comes back rather than bare bubbles. Up to 0.1.34
+  // the box went without only while one of your bubbles was in the chat,
+  // which left the flash in chats showing only the other side's messages.
+  // A wallpaper (a picture) stays. Themes set the gradient to initial, so
+  // their bubbles keep their colour, and paint the box themselves (:where
+  // adds no weight).
+  const GRADIENT = '--chat-outgoing-message-background-gradient';
+  const BUBBLE_COLOUR = /^var\(--chat-outgoing-message-bubble-background-color[,)]/;
+  const gradientStyle = document.createElement('style');
+  // Facebook adds rules to its sheets as it goes: a sheet is read again only
+  // once it has more.
+  const rulesRead = new WeakMap();
+  const bubbleClasses = () => {
+    const classes = new Set();
+    const read = (rules) => {
+      for (const rule of rules) {
+        if (rule.cssRules && !rule.selectorText) read(rule.cssRules);
+        else if (/^\.[\w-]+$/.test(rule.selectorText ?? '') && BUBBLE_COLOUR.test(rule.style?.getPropertyValue('background-color').replace(/\s/g, '') ?? '')) {
+          classes.add(rule.selectorText);
+        }
+      }
+    };
+    for (const sheet of document.styleSheets) {
+      let rules;
+      try {
+        rules = sheet.cssRules;
+      } catch {
+        continue;
+      }
+      if (rulesRead.get(sheet) === rules.length) continue;
+      rulesRead.set(sheet, rules.length);
+      read(rules);
+    }
+    return [...classes];
+  };
+  const paintGradientBubbles = () => {
+    if (gradientStyle.isConnected || !document.querySelector(`[role="main"] [style*="${GRADIENT}"]`)) return;
+    const classes = bubbleClasses();
+    if (!classes.length) return;
+    const chat = `html[${CHATS}] [role="main"] [style*="${GRADIENT}"]`;
+    gradientStyle.textContent = `
+      ${chat} :is(${classes.join(', ')}) {
+        background-image: var(${GRADIENT}) !important;
+        background-attachment: fixed !important;
+      }
+      :where(${chat}:is([style*="background-image: linear-gradient"], [style*="background-image:linear-gradient"])) {
+        background-image: none !important;
+      }
+    `;
+    withRoot((root) => root.append(gradientStyle));
+  };
+  setInterval(paintGradientBubbles, 1000);
 

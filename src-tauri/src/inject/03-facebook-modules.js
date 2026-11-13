@@ -55,6 +55,23 @@
       };
       return true;
     },
+    // Messenger's error screens, "Couldn't load chats" among them, offer
+    // Reload; iMessenger reloads by itself (see recover, 19-recover).
+    getMWErrorDefinition(exports) {
+      const define = exports.default;
+      if (typeof define !== 'function') return false;
+      exports.default = function (error, ...rest) {
+        const definition = define.call(this, error, ...rest);
+        try {
+          if (definition?.action) {
+            window.__imessengerErrors?.push(`recover: Messenger's error screen (${error?.name ?? 'error'}) @${Date.now()}`);
+            recover('chats error');
+          }
+        } catch {}
+        return definition;
+      };
+      return true;
+    },
     useHideNotificationsToasts(exports) {
       if (typeof exports.default !== 'function') return false;
       exports.default = () => true;
