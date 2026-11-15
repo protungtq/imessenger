@@ -5,6 +5,28 @@
   if (window.top !== window || window.__imessengerInstalled) return;
   window.__imessengerInstalled = true;
 
+  // The browser's own timers, for every part of this script. Facebook swaps
+  // window.setInterval and its kin for its scheduler's once its scripts load,
+  // and that clearInterval doesn't know a timer made before: one started as
+  // the page loaded never stopped. After a reload at a chat, the one that
+  // puts the cursor in the message box (06-routes) went on doing so every
+  // 50 ms, so no other field could be typed in and no text selected until
+  // iMessenger was quit (#51).
+  const setTimeout = window.setTimeout.bind(window);
+  const clearTimeout = window.clearTimeout.bind(window);
+  const setInterval = window.setInterval.bind(window);
+  const clearInterval = window.clearInterval.bind(window);
+
+  // SharedWorker breaks in WebView2 across page reloads (Edge issue #4852),
+  // leaving chats on an infinite spinner. Suppressing it forces Messenger's
+  // worker (MAWSetupWorker) into its dedicated Worker fallback. Windows only:
+  // WebKit's reloads are fine with it (tests/app/live-check.sh).
+  if (/^Win/.test(navigator.platform)) {
+    try {
+      Object.defineProperty(window, 'SharedWorker', { value: undefined, configurable: false, writable: false });
+    } catch {}
+  }
+
   // Debug builds (window.__imessengerDebug, see webview.rs): note who adds wheel,
   // touch and scroll listeners and whether they can cancel scrolling, for
   // probes (window.__imessengerListenerLog). A wheel listener that isn't passive
