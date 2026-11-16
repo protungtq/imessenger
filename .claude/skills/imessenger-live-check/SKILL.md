@@ -116,6 +116,36 @@ message box" timer ran for ever (every 50 ms), so no field could be typed in and
 no text selected until iMessenger was quit. iMessenger's script now keeps the browser's
 own timers (01-start). A timer started as the page loads is the case to test.
 
+## Fuzz check
+
+`tests/app/fuzz-check.sh [seed] [steps] [runs] [looks]` (macOS, debug build):
+random sequences of what a person does, with real clicks and keys, checking
+after every step what must always hold. Bombadil's idea (property-based UI
+testing), on WebKit with this probe. Runs behind what you work in.
+
+- Steps: open a chat, the search field (or a theme's own search box), ⌘K, the
+  photo viewer (zoom, Escape), a reply started and dropped, right-click then
+  Escape, selecting text, scrolling, a reload; and, only in whitelisted chats,
+  typing, sending, replying, a draft left while doing something else.
+- Rules: the keyboard goes where it is put; typing lands there; the message
+  box keeps its width; Escape closes the viewer (box empty) and menus; text
+  can be selected; a sent message shows and the box empties; no error from
+  iMessenger's script; no "Couldn't load chats"; a chat opens within 20 s; no chat
+  off the whitelist gets typed in or marked read.
+- Looks: one per run in turn (messenger, zalo, whatsapp, teams, …), put in
+  the page as Settings would, not saved.
+- `PASS`/`FAIL seed … step n: rule: detail (picture)`, every step in app.log
+  as it goes (`[fuzz]`). The same seed and look do the same steps again.
+- It runs on anh's account: it may type and send only in chats listed in
+  `~/.config/imessenger/fuzz.json` (`{"sendTo": {"<thread id>": "who"},
+  "maxSendsPerRun": 6}`), kept on that Mac, never in the repo. Without the
+  file it sends nothing. Elsewhere: read chats only, no typing in a message
+  box, no menu items, reactions or calls; a draft of anh's own is left as is.
+- Most first failures were the probe's (a click under a panel, a caret in the
+  middle of old text, text in a link): look at the picture before blaming
+  iMessenger. What it found that was real: encrypted chats hung after an early
+  reload (below).
+
 ## Real clicks and keys in a probe
 
 Synthetic events (`dispatchEvent`, `el.focus()`) passed where people failed:
@@ -140,6 +170,33 @@ web view (macOS won't let iMessenger come in front of the app you're in), so no
 Accessibility permission and the pointer doesn't move. A probe that returns
 `"again"` runs again `IMESSENGER_PROBE_DELAY` seconds later, after a reload too:
 keep where it is in `sessionStorage` (focus-check.js does).
+
+## Encrypted chats hung after a reload
+
+A reload in the page's first seconds (fuzz: 2 of 8 at ~3 s) can leave
+Messenger's encrypted chats' worker hung: open encrypted chats spin with no
+message, and Messenger logs `BridgeTimeoutError … WorkerHealthStatus:
+shared_exists_and_connected`. A later reload brought them back in the run
+measured; anh's morning one needed iMessenger quit. 19-recover: no reload in a
+page's first 30 s; a reload when Messenger reports that hang twice in two
+minutes, when an open encrypted chat spins 60 s with no message, or when
+every encrypted chat in the list stays blank 90 s; stuck again within 10
+minutes of that reload, iMessenger starts again (recover.rs, at most every 30
+minutes, kept in `last-chats-restart` in the app's data folder; delete it
+after testing a restart). Turning SharedWorker off on macOS (as #67 does on
+Windows) broke the encrypted chats after a reload: don't.
+
+## Dark wakes (0.1.36)
+
+A Mac with its lid shut wakes in the dark for a few seconds every 15–20
+minutes (`pmset -g log | grep DarkWake`) and sleeps again. 0.1.36 reloaded
+there, the reload was cut short by the next sleep, and the encrypted chats
+stayed on grey bars and a spinner, with no error screen, until iMessenger was
+quit. 19-recover now waits until the computer has been awake 20 s, and
+reloads when every encrypted chat in the list stays blank for 90 s.
+`tests/recover.mjs` has both; a real dark wake can't be made up here, so
+when someone reports a stuck morning, read `pmset -g log` around the time
+the page's process started (`ps -o lstart -p <WebContent pid>`).
 
 ## Still by hand
 

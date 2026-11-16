@@ -10,6 +10,7 @@ mod icon;
 mod links;
 mod menu;
 mod notify;
+mod recover;
 #[cfg(debug_assertions)]
 mod probe;
 mod settings;
@@ -84,6 +85,7 @@ fn main() {
             webview::set_viewer_open,
             menu::show_account_menu,
             menu::menu_shortcut,
+            recover::restart_for_stuck_chats,
         ])
         .on_menu_event(menu::handle)
         .setup(|app| {

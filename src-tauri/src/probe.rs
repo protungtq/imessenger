@@ -138,7 +138,23 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
                 // it where it was), to check what a reload leaves.
                 Ok(result) if result == r#""\"again\"""# => {
                     eprintln!("[probe] again after a reload");
-                    let _ = window.eval("window.__imessengerProbe = undefined;");
+                    // The page that asked is marked, and the probe runs again
+                    // only in a new one, once loaded: run sooner, it ran in the
+                    // old page and died with it.
+                    let _ = window.eval("window.__imessengerProbe = undefined; window.__imessengerProbeOldPage = true;");
+                    for _ in 0..240 {
+                        thread::sleep(Duration::from_millis(500));
+                        let (tx, rx) = std::sync::mpsc::channel();
+                        let _ = window.eval_with_callback(
+                            "window.__imessengerProbeOldPage !== true && document.readyState === 'complete'",
+                            move |result| {
+                                let _ = tx.send(result);
+                            },
+                        );
+                        if rx.recv_timeout(Duration::from_secs(5)).is_ok_and(|result| result == "true") {
+                            break;
+                        }
+                    }
                     thread::sleep(Duration::from_secs(delay));
                     let _ = window.eval(&start);
                 }
@@ -168,8 +184,9 @@ pub fn run<R: Runtime>(app: AppHandle<R>) {
 ///   {"drag": [x1, y1, x2, y2]}                         (selects text)
 ///   {"type": "text"}, {"key": "Escape"} (also Enter, Tab, Backspace)
 /// Posted in the window, not the system, so it needs no Accessibility
-/// permission and doesn't move the pointer. The window is made the key
-/// window first, as a click would (so it comes in front of what you work in).
+/// permission and doesn't move the pointer. A window that isn't the key one
+/// (another app in front) gets them straight in its web view, and stays
+/// where it is: a test never takes the screen from whoever works on it.
 #[cfg(target_os = "macos")]
 fn serve_input_request<R: Runtime>(window: &tauri::WebviewWindow<R>) {
     let (tx, rx) = std::sync::mpsc::channel();
@@ -238,15 +255,6 @@ unsafe fn send_input(view: *mut objc2::runtime::AnyObject, ns_window: *mut objc2
         const ENCODING: objc2::Encoding = objc2::Encoding::Struct("CGRect", &[Point::ENCODING, Point::ENCODING]);
     }
     let bounds: Rect = msg_send![view, bounds];
-    // WebKit takes a click in a window that isn't the key one as the click
-    // that brings it forward, and not as one on the page.
-    let is_key: bool = msg_send![ns_window, isKeyWindow];
-    if !is_key {
-        let app: *mut AnyObject = msg_send![class!(NSApplication), sharedApplication];
-        let _: () = msg_send![app, activateIgnoringOtherApps: true];
-        let nil: *mut AnyObject = std::ptr::null_mut();
-        let _: () = msg_send![ns_window, makeKeyAndOrderFront: nil];
-    }
     let number: isize = msg_send![ns_window, windowNumber];
     // CSS pixels in the page to the window's coordinates.
     let at = |x: f64, y: f64| -> Point {

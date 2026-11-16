@@ -1,17 +1,13 @@
-# iMessenger 1.3.1
+# iMessenger 1.3.2
 
-Bản này đồng bộ mã nguồn fMess 0.1.36 của tác giả gốc (từ 0.1.35 ở bản 1.3.0), gồm menu chuột phải cho chat và tin nhắn, trả lời nhanh bằng double-click, phím F11 toàn màn hình, cùng loạt sửa lỗi ô tìm kiếm, giao diện Zalo, vòng xoay trên Windows và giấc ngủ của macOS.
+Bản này đồng bộ mã nguồn fMess 0.1.37 của tác giả gốc (từ 0.1.36 ở bản 1.3.1), gồm chế độ che thông tin nhạy cảm để chụp màn hình và chia sẻ màn hình, cùng loạt sửa lỗi chat mã hoá kẹt vòng xoay sau khi máy ngủ và đăng nhập bước hai bằng passkey.
 
 ## Có gì mới
 
-- **Chuột phải vào một cuộc chat trong danh sách để mở menu của nó** (đánh dấu chưa đọc, tắt thông báo, ghim, xoá…) như app chat trên máy tính. Chuột phải lần nữa thì ra menu thường.
-- **Chuột phải vào tin nhắn để thả cảm xúc.** Bôi đen chữ trước rồi chuột phải thì vẫn có menu thường với Copy; chuột phải vào ảnh vẫn có Copy Image.
-- **Double-click vào chỗ trống cạnh tin nhắn để trả lời tin đó.** Double-click vào chữ thì vẫn chọn chữ như cũ.
-- **Windows và Linux: F11 để bật/tắt toàn màn hình.**
-- **Ô tìm kiếm gõ được trở lại, bôi đen được chữ trong tin nhắn** sau khi app tự tải lại lúc đang mở chat (sau khi máy ngủ, mất mạng hoặc bấm Ctrl+R). Trước đây chữ gõ vào cứ chui vào ô soạn tin, phải thoát hẳn app mới hết.
-- **Zalo: ô soạn tin giữ nguyên bề ngang sau khi trả lời tin nhắn**, không còn co lại bằng cụm nút. Phần trích dẫn nằm phía trên tin trả lời, có vạch xanh, và mở chat nhanh hơn.
-- **Windows: chat không còn kẹt vòng xoay sau khi tải lại.**
-- **macOS: máy tự ngủ được khi đang mở app.** Trình phát âm thanh của Messenger giữ máy thức; giờ nó nghỉ giữa các lần phát, tin nhắn tới vẫn kêu.
+- **Cài đặt › Quyền riêng tư › Che thông tin nhạy cảm.** Tên người chat, nội dung tin nhắn, xem trước liên kết, ảnh và hình đại diện đều hoá thành khối đặc, tiện chụp màn hình hoặc chia sẻ màn hình mà không lộ nội dung. Mọi ngôn ngữ đều được che; tắt đi thì khung chat trở lại như cũ.
+- **macOS: chat mã hoá không còn kẹt vòng xoay sau một đêm máy ngủ.** Máy Mac đóng nắp vẫn thức dậy chốc lát trong đêm (dark wake); app tải lại đúng lúc đó, lần tải lại bị giấc ngủ cắt ngang và chat mã hoá kẹt ở vạch xám cùng vòng xoay cho tới khi thoát hẳn app. Giờ app chờ máy thức ổn định 20 giây mới tải lại, và không bao giờ tải lại trong 30 giây đầu của trang.
+- **Chat mã hoá có kẹt thì app tự cứu lấy.** Khi mọi chat mã hoá trong danh sách đều trống, khi chat đang mở xoay tròn một phút không có tin nhắn, hoặc khi Messenger báo bộ phận chạy chat mã hoá bị treo, app sẽ tự tải lại; kẹt lại ngay sau đó thì app tự khởi động lại như khi thoát ra mở lại (tối đa mỗi 30 phút một lần).
+- **Đăng nhập bước hai bằng passkey không còn trông như bị kẹt.** Passkey chỉ dùng được trong trình duyệt web, nên trong app mọi yêu cầu passkey đều bị từ chối; trước đây màn hình đăng nhập cứ đứng yên khó hiểu. Giờ app nói rõ lý do và chỉ sang "Thử cách khác": nhập mã từ ứng dụng xác thực hoặc tin nhắn SMS.
 
 ## Nguồn gốc & tác giả
 

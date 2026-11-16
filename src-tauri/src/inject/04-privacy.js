@@ -9,7 +9,7 @@
   // answer and nothing is retried: typing (type 4, label "3") says
   // is_typing 0. Typing in encrypted chats goes to Messenger's worker instead
   // (sendChatStateFromComposer) and is edited on its way there.
-  const privacy = { blockTyping: Boolean(settings.blockTyping), hideAvatars: false };
+  const privacy = { blockTyping: Boolean(settings.blockTyping), hideAvatars: false, redactMode: false };
 
   // Privacy (iMessenger Settings): people's pictures as their initials, for
   // screens others can see. A person's picture in the chat list, the chat's
@@ -109,6 +109,169 @@
     } else for (const picture of document.querySelectorAll(`[${AVATAR}]`)) uncoverPicture(picture);
   };
   setHideAvatars(Boolean(settings.hideAvatars));
+
+  const REDACT = 'data-imessenger-redact';
+  const UNREDACT = 'data-imessenger-unredact';
+  const redactStyle = document.createElement('style');
+  redactStyle.textContent = `
+    /* Redact colors: light mode default, dark mode adapts to deep black and subdued media/avatars */
+    html[${REDACT}] {
+      --imessenger-redact-pill: #484a4d;
+      --imessenger-redact-media: brightness(0.35);
+      --imessenger-redact-avatar: brightness(0.8);
+    }
+    html[${REDACT}]:is([data-imessenger-dark], .__fb-dark-mode) {
+      --imessenger-redact-pill: #000000;
+      --imessenger-redact-media: brightness(0.12);
+      --imessenger-redact-avatar: brightness(0.35);
+    }
+    /* Redact contact names, snippet previews, message bubbles, pinned banners, tooltips, and dialog messages with solid charcoal pills */
+    html[${REDACT}] [role="navigation"] [role="row"] [dir="auto"],
+    html[${REDACT}] [data-imessenger-ui="chat-header"] [dir="auto"]:not([role="button"] *),
+    html[${REDACT}] [role="main"] :is([role="banner"], [data-imessenger-ui="pinned-banner"]) :is([dir="auto"], span):not(:has([dir="auto"])):not(:has(span)):not([role="button"]):not([role="button"] *),
+    html[${REDACT}] [role="main"] [role="log"] [dir="auto"]:not(:has([dir="auto"])),
+    html[${REDACT}] [role="main"] [data-imessenger-ui="details"] > div:first-child [dir="auto"]:not([role="button"] *):not([role="tab"] *):not([role="listitem"] *):not([${UNREDACT}]),
+    html[${REDACT}] [role="dialog"] :is([role="article"], [role="listitem"], [dir="auto"], time):not([role="dialog"] h2 *):not([role="dialog"] [role="heading"] *):not([role="button"] *),
+    html[${REDACT}] [role="tooltip"] {
+      background: var(--imessenger-redact-pill) !important;
+      color: transparent !important;
+      -webkit-text-fill-color: transparent !important;
+      text-shadow: none !important;
+      border-radius: 4px !important;
+      box-decoration-break: clone !important;
+      -webkit-box-decoration-break: clone !important;
+      padding: 2px 4px !important;
+      user-select: none !important;
+    }
+    /* Ensure all text descendants inside redacted containers have transparent fill so diacritics/spans never poke out */
+    html[${REDACT}] :is(
+      [role="navigation"] [role="row"],
+      [role="main"] :is([role="banner"], [data-imessenger-ui="pinned-banner"]),
+      [role="main"] [role="log"],
+      [data-imessenger-ui="chat-header"]
+    ) [dir="auto"]:not([${UNREDACT}]) *,
+    html[${REDACT}] [role="tooltip"] *,
+    html[${REDACT}] [role="main"] [data-imessenger-ui="details"] > div:first-child [dir="auto"]:not([role="button"] *):not([role="tab"] *):not([role="listitem"] *):not([${UNREDACT}]) *,
+    html[${REDACT}] [role="dialog"] [dir="auto"]:not([role="dialog"] h2 *):not([role="dialog"] [role="heading"] *):not([role="button"] *) * {
+      color: transparent !important;
+      -webkit-text-fill-color: transparent !important;
+      text-shadow: none !important;
+    }
+    /* Hide image emojis inside redacted text spans */
+    html[${REDACT}] :is(
+      [role="navigation"] [role="row"],
+      [role="main"] :is([role="banner"], [data-imessenger-ui="pinned-banner"]),
+      [role="main"] [role="log"],
+      [data-imessenger-ui="chat-header"]
+    ) [dir="auto"]:not([${UNREDACT}]) img,
+    html[${REDACT}] [role="main"] [data-imessenger-ui="details"] > div:first-child [dir="auto"]:not([role="button"] *):not([role="tab"] *):not([role="listitem"] *):not([${UNREDACT}]) img,
+    html[${REDACT}] [role="dialog"] [dir="auto"]:not([role="dialog"] h2 *):not([role="dialog"] [role="heading"] *):not([role="button"] *) img {
+      opacity: 0 !important;
+      visibility: hidden !important;
+    }
+    /* Redact message reactions attached to bubbles */
+    html[${REDACT}] [role="main"] [role="log"] [role="button"]:is(:has(img[src*="emoji.php"]), [aria-label*="reaction" i], [aria-label*="cảm xúc" i]) {
+      filter: grayscale(1) contrast(0) brightness(0.6) !important;
+    }
+    /* Exclude composer input and buttons so composition remains visible */
+    html[${REDACT}] :is([role="textbox"], [role="textbox"] *, input, textarea, [data-imessenger-ui="composer"], [data-imessenger-ui="composer"] *) {
+      color: inherit !important;
+      -webkit-text-fill-color: initial !important;
+      user-select: auto !important;
+    }
+    /* Specifically preserve Profile, Notifications/Mute, and Search action buttons and labels in details sidebar */
+    html[${REDACT}] [${UNREDACT}],
+    html[${REDACT}] [${UNREDACT}] * {
+      background: transparent !important;
+      color: var(--primary-text, inherit) !important;
+      -webkit-text-fill-color: currentColor !important;
+      user-select: auto !important;
+    }
+    /* Redact media (photos, videos, lightbox viewer, previews) synchronously on DOM insertion without route delay */
+    html[${REDACT}] :is(img:not([src*="emoji.php"]), video) {
+      filter: contrast(0) var(--imessenger-redact-media) !important;
+      user-select: none !important;
+    }
+    /* Redact avatars: flat gray circle without entropy (higher specificity overrides general media rule) */
+    html[${REDACT}] #imessenger-account,
+    html[${REDACT}] :is([role="navigation"] [role="row"], [data-imessenger-ui="chat-header"], [role="log"], [data-imessenger-ui="details"] > div:first-child, [role="dialog"], [role="complementary"]) :is(img:not([src*="emoji.php"]), svg image, [role="img"]:not([aria-label*="emoji"])) {
+      filter: grayscale(1) contrast(0) var(--imessenger-redact-avatar) !important;
+    }
+  `;
+  // In the page only while redacting: its :has() rules cost WebKit a look at
+  // the chat each time Messenger adds messages, even with the mode off.
+
+  const updateRedactions = (root = document) => {
+    if (!privacy.redactMode) return;
+    const detailsTop = root.querySelector?.('[data-imessenger-ui="details"] > div:first-child');
+    if (detailsTop) {
+      // Action buttons (Profile, Mute, Search) are icon-only buttons with adjacent text labels in the top header
+      for (const btn of detailsTop.querySelectorAll('[role="button"]:not([aria-expanded])')) {
+        if (btn.querySelector('[dir="auto"]')) continue;
+        const label = btn.parentElement?.querySelector('[dir="auto"]');
+        if (label && !label.hasAttribute(UNREDACT)) label.setAttribute(UNREDACT, '');
+      }
+      for (const span of detailsTop.querySelectorAll('[dir="auto"]')) {
+        const text = span.textContent?.trim().toLowerCase();
+        if (['profile', 'trang cá nhân', 'notifications', 'thông báo', 'mute', 'tắt thông báo', 'search', 'tìm kiếm'].includes(text) && !span.hasAttribute(UNREDACT)) {
+          span.setAttribute(UNREDACT, '');
+        }
+      }
+    }
+    const main = root.querySelector?.('[role="main"]') ?? (typeof document !== 'undefined' ? document.querySelector('[role="main"]') : null);
+    if (main) {
+      const header = main.querySelector('[data-imessenger-ui="chat-header"]');
+      const log = main.querySelector('[role="log"]');
+      if (header && log) {
+        let curr = log;
+        while (curr && curr !== header.parentElement && curr !== main) {
+          let prev = curr.previousElementSibling;
+          while (prev) {
+            if (!prev.contains(header) && prev !== header) {
+              if (!prev.hasAttribute('data-imessenger-ui')) {
+                prev.setAttribute('data-imessenger-ui', 'pinned-banner');
+              }
+            }
+            prev = prev.previousElementSibling;
+          }
+          curr = curr.parentElement;
+        }
+        let next = header.nextElementSibling;
+        while (next && !next.contains(log)) {
+          if (!next.hasAttribute('data-imessenger-ui')) {
+            next.setAttribute('data-imessenger-ui', 'pinned-banner');
+          }
+          next = next.nextElementSibling;
+        }
+      }
+    }
+  };
+
+  let redactFrame = 0;
+  const redactWatcher = new MutationObserver(() => {
+    redactFrame ||= requestAnimationFrame(() => ((redactFrame = 0), updateRedactions(document)));
+  });
+
+  const setRedactMode = (enabled) => {
+    if (enabled === privacy.redactMode) return;
+    privacy.redactMode = enabled;
+    withRoot((root) => (root.toggleAttribute(REDACT, enabled), enabled ? root.append(redactStyle) : redactStyle.remove()));
+    redactWatcher.disconnect();
+    cancelAnimationFrame(redactFrame);
+    redactFrame = 0;
+    if (enabled) {
+      withRoot((root) => redactWatcher.observe(root, { childList: true, subtree: true, characterData: true }));
+      updateRedactions(document);
+    } else {
+      for (const el of document.querySelectorAll(`[${UNREDACT}]`)) {
+        el.removeAttribute(UNREDACT);
+      }
+      for (const el of document.querySelectorAll('[data-imessenger-ui="pinned-banner"]')) {
+        el.removeAttribute('data-imessenger-ui');
+      }
+    }
+  };
+  setRedactMode(Boolean(settings.redactMode));
 
   const currentUserId = () => {
     try {
