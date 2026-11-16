@@ -7,7 +7,7 @@ use crate::i18n::{self, Lang};
 
 pub const REPOSITORY: &str = "https://github.com/protungtq/imessenger";
 const AUTHOR: (&str, &str) = ("Toan Ho", "https://github.com/toanbku");
-const WEBSITE: &str = "https://github.com/protungtq/imessenger";
+const WEBSITE: &str = "https://so1.asia";
 
 #[cfg(target_os = "macos")]
 pub fn show<R: Runtime>(app: &AppHandle<R>) {

@@ -18,7 +18,7 @@
     "category": "SocialNetworking",
     "shortDescription": "iMessenger — unofficial desktop app for Messenger on the web",
     "longDescription": "iMessenger wraps Messenger on the web in a small native window with notifications, an unread badge and a tray icon. A personal rebrand of fMess by Toan Ho (MIT). Not affiliated with Meta.",
-    "copyright": "© 2026 Lương Văn Tùng. Based on fMess © fMess contributors (MIT). Messenger is a trademark of Meta Platforms, Inc.",
+    "copyright": "© 2026 TungTQ. Based on fMess © fMess contributors (MIT). Messenger is a trademark of Meta Platforms, Inc.",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
